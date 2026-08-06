@@ -15,6 +15,12 @@ Most recent local run, 2026-08-06:
 
 The current automated suite does not emulate browser serial streams, Web Serial permission flow, WebUSB descriptors/control transfers, browser image decoding, service-worker lifecycle, touch gestures, or badge firmware.
 
+## Responsive browser pass
+
+Headless Chromium 138.0.7204.0 rendered the current Vite app on 2026-08-06 at 320, 390, 640, 768, and 1280 CSS pixels. Both Art and BIO routes had matching viewport/scroll widths, no page or console errors, and no visible interactive target with an effective hit area below 44×44 CSS pixels. The pass also inspected the loaded crop state, BIO pin collapse, fixed mobile navigation, and the sticky/static action tray at the bottom of the document. The 640-pixel run is a reflow proxy for a 1280-pixel window at 200% zoom; it is not recorded as an actual browser-zoom result.
+
+Visual evidence: [`notes/qa/mobile-layout-2026-08-06.png`](qa/mobile-layout-2026-08-06.png). The reusable state harness is `test/responsive-harness.html`.
+
 ## Source-inspection anchors
 
 - Secure-context support detection, native-first selection, runtime VID/PID filter, experimental CDC fallback, 1,000,000-baud open options, one-command queue, exact response matching, and disconnect cleanup: `src/lib/badge-connection.js`.
@@ -35,7 +41,7 @@ No production-badge result is recorded yet. Keep the corresponding `FEATURES.md`
 | Touch crop/pinch | Physical Android phone | pending | — |
 | BIO install/reload | Known-safe binary built from pinned source + production badge | pending | — |
 | FIFO3 telemetry | Pinned `biosao` source, recorded binary hash, and SAO touch fixture | pending | — |
-| Responsive layout | 320, 390, 768, 1280 CSS pixels | pending | — |
+| Responsive layout | 320, 390, 768, 1280 CSS pixels | passed 2026-08-06 | [contact sheet](qa/mobile-layout-2026-08-06.png); Chromium measurements above |
 | Zoom accessibility | Editor at 200% browser zoom | pending | — |
 | Offline shell | Installed PWA after one online visit | pending | — |
 

@@ -77,7 +77,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Dependencies**: `src/styles.css`, `public/manifest.webmanifest`, `public/sw.js`
 - **Test Criteria**:
   - [x] Production build contains the manifest, service worker, CNAME, and icon.
-  - [ ] Screenshots at 320, 390, 768, and 1280 CSS pixels have no horizontal overflow or obscured controls.
+  - [x] Screenshots at 320, 390, 768, and 1280 CSS pixels have no horizontal overflow or obscured controls.
   - [ ] Core editor UI remains usable at 200% browser zoom.
   - [ ] Installed PWA loads the editor offline after one online visit.
 

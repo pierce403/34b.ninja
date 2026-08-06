@@ -137,6 +137,8 @@ a {
 
 .wordmark {
   display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
   align-items: center;
   gap: 10px;
   width: max-content;
@@ -170,8 +172,10 @@ a {
 }
 
 .desktop-nav a {
-  min-height: 40px;
+  display: flex;
+  min-height: 44px;
   padding: 10px 17px;
+  align-items: center;
   border-radius: 999px;
   color: var(--muted);
   font-size: 0.78rem;
@@ -783,6 +787,8 @@ h1 em {
 
 input[type="range"] {
   width: 100%;
+  min-height: 44px;
+  margin: 0;
   accent-color: var(--lime);
 }
 
@@ -898,7 +904,7 @@ input[type="range"] {
 }
 
 .switch-row.slim {
-  min-height: 42px;
+  min-height: 44px;
 }
 
 .mini-note {
@@ -1542,6 +1548,9 @@ code {
 }
 
 .footer a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   color: var(--muted);
   text-decoration: none;
 }

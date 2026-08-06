@@ -17,6 +17,8 @@ Android WebUSB CDC is implemented but not yet verified on a production badge. Tr
 
 ## Develop
 
+Requires Node.js 22.12 or newer.
+
 ```sh
 npm install
 npm run dev
