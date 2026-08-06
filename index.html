@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0e0c">
+    <meta
+      name="description"
+      content="Connect to a DEF CON 34 badge from your browser and inspect its USB identity and Xous firmware version."
+    >
+    <meta property="og:title" content="34B.NINJA — DEF CON 34 badge link">
+    <meta
+      property="og:description"
+      content="A tiny, private-by-design browser console for the DEF CON 34 Baochip badge."
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://34b.ninja/">
+    <title>34B.NINJA — DEF CON 34 badge link</title>
+    <link rel="canonical" href="https://34b.ninja/">
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <header class="site-header shell">
+      <a class="wordmark" href="#top" aria-label="34B.NINJA home">
+        <span class="prompt">&gt;</span> 34B.NINJA<span class="cursor">_</span>
+      </a>
+      <div class="header-status">
+        <span class="status-light" aria-hidden="true"></span>
+        LOCAL LINK
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero shell" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">UNOFFICIAL BADGE UTILITY / DC34</p>
+          <h1 id="hero-title">Plug in.<br><em>Say hello.</em></h1>
+          <p class="lede">
+            Meet your DEF CON 34 badge from the browser. Read its USB identity,
+            ask the Baochip console for its Xous version, and keep every byte on
+            your machine.
+          </p>
+
+          <div class="actions">
+            <button class="button button-primary" id="connect-button" type="button">
+              <span aria-hidden="true">↳</span> CONNECT BADGE
+            </button>
+            <button class="button button-secondary" id="disconnect-button" type="button" disabled>
+              DISCONNECT
+            </button>
+          </div>
+
+          <p class="browser-note" id="browser-note">
+            Requires a desktop Chromium browser and a secure connection.
+          </p>
+        </div>
+
+        <div class="badge-visual" aria-label="Stylized badge connection diagram">
+          <div class="orbit orbit-one" aria-hidden="true"></div>
+          <div class="orbit orbit-two" aria-hidden="true"></div>
+          <div class="badge-card">
+            <div class="badge-topline"><span>BAOCHIP-1X</span><span>DC34</span></div>
+            <div class="chip-grid" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="badge-face">
+              <span class="eye eye-left"></span>
+              <span class="eye eye-right"></span>
+              <span class="mouth"></span>
+            </div>
+            <div class="badge-bottomline">TRANSPARENT SILICON / OPEN SOURCE</div>
+          </div>
+          <div class="usb-tail" aria-hidden="true"><span>USB-C</span></div>
+        </div>
+      </section>
+
+      <section class="console-section shell" aria-labelledby="console-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SERIAL CONSOLE / 1,000,000 BAUD</p>
+            <h2 id="console-title">Badge readout</h2>
+          </div>
+          <div class="connection-state" id="connection-state" role="status" aria-live="polite">
+            <span class="state-dot" aria-hidden="true"></span>
+            <span id="connection-label">STANDING BY</span>
+          </div>
+        </div>
+
+        <div class="readout-grid">
+          <dl class="device-facts" aria-label="Connected device information">
+            <div class="fact">
+              <dt>USB vendor ID</dt>
+              <dd id="vendor-id">—</dd>
+            </div>
+            <div class="fact">
+              <dt>USB product ID</dt>
+              <dd id="product-id">—</dd>
+            </div>
+            <div class="fact fact-wide">
+              <dt>Xous version</dt>
+              <dd id="xous-version">Connect to query</dd>
+            </div>
+          </dl>
+
+          <div class="terminal-wrap">
+            <div class="terminal-bar">
+              <span>34b://badge/console</span>
+              <button id="query-button" class="terminal-action" type="button" disabled>
+                QUERY VERSION
+              </button>
+            </div>
+            <pre id="terminal" class="terminal" role="log" aria-live="polite" aria-label="Badge console output"><span class="terminal-muted">[34b] Waiting for a badge…</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="how-it-works shell" aria-labelledby="how-title">
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="eyebrow">NO DRIVERS / NO CLOUD / NO NONSENSE</p>
+            <h2 id="how-title">Three moves</h2>
+          </div>
+        </div>
+        <ol class="steps">
+          <li>
+            <span class="step-number">01</span>
+            <h3>Power the badge</h3>
+            <p>Connect its USB-C port to your computer and leave it in normal badge mode.</p>
+          </li>
+          <li>
+            <span class="step-number">02</span>
+            <h3>Approve the port</h3>
+            <p>Press Connect Badge and choose the badge’s USB serial device in Chrome or Edge.</p>
+          </li>
+          <li>
+            <span class="step-number">03</span>
+            <h3>Read the signal</h3>
+            <p>The page reads USB IDs and sends the official read-only <code>ver xous</code> command.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="privacy-strip">
+        <div class="shell privacy-inner">
+          <p><strong>Your badge stays yours.</strong> The serial connection is direct between this browser and your USB device.</p>
+          <p>No analytics. No uploads. No badge data stored.</p>
+        </div>
+      </section>
+
+      <section class="resources shell" aria-labelledby="resources-title">
+        <div>
+          <p class="eyebrow">KEEP DIGGING</p>
+          <h2 id="resources-title">Official rabbit holes</h2>
+        </div>
+        <div class="resource-links">
+          <a href="https://media.defcon.org/DEF%20CON%2034/DEF%20CON%2034%20badge/badge-index.html" target="_blank" rel="noreferrer">
+            <span>DEF CON badge help</span><span aria-hidden="true">↗</span>
+          </a>
+          <a href="https://github.com/bunnie/dc34-console" target="_blank" rel="noreferrer">
+            <span>Badge console source</span><span aria-hidden="true">↗</span>
+          </a>
+          <a href="https://github.com/bunnie/dc34-image" target="_blank" rel="noreferrer">
+            <span>Official image uploader</span><span aria-hidden="true">↗</span>
+          </a>
+          <a href="https://github.com/baochip/baochip-1x" target="_blank" rel="noreferrer">
+            <span>Baochip-1x source</span><span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer shell">
+      <span>34B.NINJA / BUILT FOR THE BADGE CURIOUS</span>
+      <a href="https://github.com/pierce403/34b.ninja">SOURCE ON GITHUB ↗</a>
+    </footer>
+  </body>
+</html>

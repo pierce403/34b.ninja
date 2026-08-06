@@ -1,0 +1,11 @@
+{
+  "name": "34b-ninja",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A browser-based serial inspector for the DEF CON 34 badge.",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test"
+  }
+}
