@@ -12,9 +12,9 @@ test("ships the two mobile tools and custom-domain assets", async () => {
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
     stat(new URL("../public/icons/icon-192.png", import.meta.url)),
     stat(new URL("../public/icons/icon-512.png", import.meta.url)),
-    stat(new URL("../public/images/dc34-human-badge-v1-768.webp", import.meta.url)),
-    stat(new URL("../public/images/dc34-human-badge-v1-1280.webp", import.meta.url)),
-    stat(new URL("../public/images/dc34-human-badge-v1-1280.jpg", import.meta.url)),
+    stat(new URL("../public/images/dc34-human-badge-v2-768.webp", import.meta.url)),
+    stat(new URL("../public/images/dc34-human-badge-v2-1280.webp", import.meta.url)),
+    stat(new URL("../public/images/dc34-human-badge-v2-1280.jpg", import.meta.url)),
   ]);
   assert.equal(rootCname.trim(), "34b.ninja");
   assert.equal(cname.trim(), "34b.ninja");
@@ -24,14 +24,15 @@ test("ships the two mobile tools and custom-domain assets", async () => {
   assert.match(html, /id="crop-canvas"/);
   assert.match(html, /id="art-preview"/);
   assert.match(html, /id="bio-file"/);
-  assert.match(html, /dc34-human-badge-v1-768\.webp/);
-  assert.match(html, /dc34-human-badge-v1-1280\.webp/);
-  assert.match(html, /dc34-human-badge-v1-1280\.jpg/);
+  assert.match(html, /dc34-human-badge-v2-768\.webp/);
+  assert.match(html, /dc34-human-badge-v2-1280\.webp/);
+  assert.match(html, /dc34-human-badge-v2-1280\.jpg/);
   assert.match(html, /A lit DEF CON 34 Human badge/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(manifest, /icon-192\.png/);
   assert.match(manifest, /icon-maskable-512\.png/);
   assert.match(workflow, /npm run check/);
+  assert.match(workflow, /playwright install/);
   assert.match(serviceWorker, /response\.ok && contentType\.includes\("text\/html"\)/);
   assert.ok(icon192.size > 1_000);
   assert.ok(icon512.size > 1_000);

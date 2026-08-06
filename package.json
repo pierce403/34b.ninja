@@ -11,13 +11,17 @@
     "dev": "vite --host 127.0.0.1 --port 4173",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "test": "node --test",
-    "check": "npm test && npm run build"
+    "test": "npm run test:unit",
+    "test:unit": "node --test \"test/*.test.mjs\"",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:headed": "npm run build && playwright test --headed",
+    "check": "npm run test:unit && npm run test:e2e"
   },
   "dependencies": {
     "web-serial-polyfill": "1.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "vite": "8.2.1"
   }
 }

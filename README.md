@@ -21,6 +21,7 @@ Requires Node.js 22.12 or newer.
 
 ```sh
 npm install
+npx playwright install chromium
 npm run dev
 ```
 
@@ -32,7 +33,7 @@ Open `http://127.0.0.1:4173/`. Localhost is a secure context for browser hardwar
 npm run check
 ```
 
-The unit tests contain protocol vectors reproduced from the official Python uploaders. Hardware-dependent browser behavior still requires a production badge. Current automated, browser, and hardware evidence is recorded in [`notes/acceptance.md`](notes/acceptance.md).
+The unit tests contain protocol vectors reproduced from the official Python uploaders. Playwright then runs the production build against stateful Web Serial and WebUSB CDC badge emulators, including real browser image decoding, crop/download behavior, 32- and 60-chunk transfers, FIFO3, and the mobile routes. Hardware-dependent behavior still requires a production badge. Current automated, browser, and hardware evidence is recorded in [`notes/acceptance.md`](notes/acceptance.md).
 
 Image files must report an `image/*` media type, be no larger than 30 MiB, and decode below 80 megapixels. Sources longer than 4,096 pixels on either edge are downscaled before editing. The browser still has to decode once to inspect dimensions, so a maliciously compressed image can cause a temporary memory spike.
 
@@ -42,6 +43,8 @@ Image files must report an `image/*` media type, be no larger than 30 MiB, and d
 - `src/lib/protocol.js` — CRC32, chunks, command validation, and BIO configuration.
 - `src/lib/badge-connection.js` — native Web Serial and WebUSB CDC transport.
 - `src/lib/transfers.js` — guarded image and BIO transfer state machines.
+- `test/e2e/` — Playwright flows and the stateful serial/WebUSB badge emulator.
+- `playwright.config.js` — phone/desktop browser test configuration.
 - `FEATURES.md` — living behavior and acceptance specification.
 - `AGENTS.md` — contributor and coding-agent guidance.
 - `SKILLS.md` and `skills/` — reusable project procedures.

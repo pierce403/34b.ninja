@@ -765,6 +765,7 @@ function installEvents() {
     if (state === "connected") updateConnectionUi("connected", label);
     else if (state === "permission") updateConnectionUi("busy", label);
     else if (state === "error" || state === "disconnected") {
+      bioRunning = false;
       updateConnectionUi("disconnected", "Connect badge");
       updateActionAvailability();
     }

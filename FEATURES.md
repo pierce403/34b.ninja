@@ -18,6 +18,8 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Test Criteria**:
   - [x] Source inspection confirms the secure-context gate, desktop-first selection, runtime VID/PID filter, and CDC fallback construction.
   - [x] Unit tests verify the runtime filter, native preference, command/operation serialization, exact-echo response gate, and representative allowed and blocked command forms.
+  - [x] Playwright emulates native Web Serial and the polyfill-relevant WebUSB CDC descriptors, including chooser filters, 1 Mbps 8-N-1 open options, claimed interfaces, line coding, DTR, bulk endpoints, fragmented echoes, and interleaved logs.
+  - [x] Playwright removes the virtual cable during an image frame, verifies the interrupted transfer stops, reconnects with a fresh port, and requires a new clear-first transfer from chunk zero.
   - [ ] Automated tests exhaustively cover the support matrix, USB filter, and every allowlist boundary.
   - [ ] Native Web Serial connects to a production badge on desktop Chromium.
   - [ ] WebUSB CDC connects to a production badge on Android Chromium.
@@ -40,6 +42,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - [x] Orientation and packing assertions cover all four image corners.
   - [x] CRC and Base64 output match official all-white, all-black, and single-pixel vectors.
   - [x] The preview can be downloaded locally as a 128×128 PNG.
+  - [x] Playwright decodes the faithful hero JPEG as a user upload, exercises keyboard crop/zoom/rotate and dithering controls, downloads the result, and sends 32 valid ordered frames through the serial emulator.
   - [ ] A production badge accepts an uploaded image and displays the same orientation as the preview.
   - [ ] Touch crop and pinch zoom are verified on a physical Android phone.
 
@@ -61,6 +64,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - [x] Unit tests cover pin mapping, frequency parsing, 3,840-byte limit, and BIO chunk vectors.
   - [x] The command allowlist rejects factory, firmware, and arbitrary shell commands.
   - [x] The upload state machine sends 60 chunks and does not contain `bio pad`.
+  - [x] Playwright sends a locally padded binary through 60 CRC-valid frames, reloads it, and verifies constrained FIFO3 TX/RX against interleaved log traffic.
   - [ ] A production badge accepts, reloads, and runs a known-safe BIO binary.
   - [ ] FIFO telemetry is verified against the `biosao` touch sample.
 
@@ -78,6 +82,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Test Criteria**:
   - [x] Production build contains the manifest, service worker, CNAME, and icon.
   - [x] Screenshots at 320, 390, 768, and 1280 CSS pixels have no horizontal overflow or obscured controls.
+  - [x] Playwright exercises Art, BIO, and About routing plus mobile navigation and 44-pixel targets at 320, 390, 768, and 1280 CSS pixels.
   - [ ] Core editor UI remains usable at 200% browser zoom.
   - [ ] Installed PWA loads the editor offline after one online visit.
 
@@ -93,4 +98,5 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Test Criteria**:
   - [x] Project guidance has distinct overview, instructions, feature-specification, memory, and procedure roles.
   - [x] `npm run check` is the documented local release gate.
+  - [x] The release gate runs Node protocol tests, a Vite production build, and Playwright browser/transport emulation before Pages deployment.
   - [x] Deployment is configured for GitHub Pages and preserves `CNAME`.

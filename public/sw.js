@@ -1,4 +1,4 @@
-const CACHE_NAME = "34b-ninja-v3";
+const CACHE_NAME = "34b-ninja-v4";
 const APP_SHELL = [
   "/",
   "/index.html",
