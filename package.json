@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4173",
     "build": "vite build",
+    "og:render": "node scripts/render-og-card.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test": "npm run test:unit",
     "test:unit": "node --test \"test/*.test.mjs\"",

@@ -12,6 +12,8 @@ Keep this index compact. Durable details live in `notes/`; session chatter does 
 - Badge Art is the primary mobile flow; BIO / SAO Lab is explicitly advanced.
 - The hero uses a rotated, minimally cropped, metadata-stripped derivative of the contributor's real badge photo. Do not replace it with reconstructed hardware imagery.
 - The visual palette follows that photo: warm near-black surfaces, cyan LED accents, burnt-orange badge-edge accents, and warm ivory text.
+- Display headings use solid type. OLED labels use a deterministic 5×7 bitmap font; do not dither platform-font glyphs.
+- Social cards use the real badge photo and a versioned image URL to avoid stale preview caches.
 - “Upload” means writing app data through the stock console, not flashing main firmware.
 - Desktop uses Web Serial; Android uses WebUSB only as a CDC serial transport.
 - Android WebUSB CDC remains experimental until it is exercised with a production badge; source compatibility is not hardware evidence.

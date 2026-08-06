@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Hack your DEF CON 34 badge from your phone</title>
+  <desc id="desc">A real illuminated DEF CON 34 Human badge beside concise WebUSB, Web Serial, badge art, and BIO/SAO labels.</desc>
+  <defs>
+    <clipPath id="photo-clip">
+      <rect width="420" height="315" rx="18"/>
+    </clipPath>
+    <linearGradient id="photo-border" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f07a3e"/>
+      <stop offset=".55" stop-color="#56ebf1"/>
+      <stop offset="1" stop-color="#5bc7ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#100e0c"/>
+  <g opacity=".14" stroke="#72503e">
+    <path d="M0 90h1200M0 180h1200M0 270h1200M0 360h1200M0 450h1200M0 540h1200"/>
+    <path d="M90 0v630M180 0v630M270 0v630M360 0v630M450 0v630M540 0v630M630 0v630M720 0v630M810 0v630M900 0v630M990 0v630M1080 0v630M1170 0v630"/>
+  </g>
+
+  <g transform="translate(70 64)">
+    <rect width="48" height="48" rx="8" fill="#191512" stroke="#56ebf1" stroke-width="2"/>
+    <text x="24" y="32" fill="#56ebf1" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-size="17" font-weight="800">34</text>
+    <text x="66" y="33" fill="#f3eee7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="24" font-weight="800" letter-spacing="1">34B.NINJA</text>
+  </g>
+
+  <g font-family="ui-sans-serif,system-ui,sans-serif" font-weight="800">
+    <text x="70" y="222" fill="#f3eee7" font-size="64" letter-spacing="-2">HACK YOUR</text>
+    <text x="70" y="300" fill="#f3eee7" font-size="56" letter-spacing="-2">DEF CON 34 BADGE</text>
+    <text x="70" y="374" fill="#56ebf1" font-size="54" letter-spacing="-2">FROM YOUR PHONE</text>
+  </g>
+
+  <rect x="70" y="432" width="600" height="2" fill="#f07a3e"/>
+  <g fill="#b9ada2" font-family="ui-sans-serif,system-ui,sans-serif" font-size="22" font-weight="700">
+    <text x="70" y="475">BADGE ART · BIO / SAO</text>
+    <text x="70" y="510">ANDROID WEBUSB (EXPERIMENTAL)</text>
+    <text x="70" y="545">DESKTOP WEB SERIAL</text>
+  </g>
+
+  <g transform="translate(720 66)">
+    <rect x="-6" y="-6" width="432" height="327" rx="23" fill="url(#photo-border)"/>
+    <g clip-path="url(#photo-clip)">
+      <image href="../images/dc34-human-badge-v2-1280.jpg" width="420" height="315" preserveAspectRatio="xMidYMid slice"/>
+    </g>
+    <rect width="420" height="315" rx="18" fill="none" stroke="#100e0c" stroke-width="3"/>
+
+    <rect y="356" width="420" height="126" rx="16" fill="#191512" stroke="#4b3930" stroke-width="2"/>
+    <text x="28" y="399" fill="#f07a3e" font-family="ui-sans-serif,system-ui,sans-serif" font-size="18" font-weight="800">STOCK FIRMWARE</text>
+    <text x="28" y="442" fill="#f3eee7" font-family="ui-sans-serif,system-ui,sans-serif" font-size="30" font-weight="800">LOCAL BROWSER TOOLS</text>
+  </g>
+</svg>

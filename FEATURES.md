@@ -76,6 +76,8 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - The complete image pipeline runs locally with no backend or analytics.
   - Navigation and transfer actions remain reachable with one hand and respect device safe areas.
   - Controls meet minimum touch-target and contrast requirements.
+  - Empty-state and nametag OLED copy uses deterministic integer-grid glyphs rather than platform fonts.
+  - Social metadata uses a versioned 1200×630 PNG rendered from the real badge photo.
   - A service worker caches the app shell after the first successful load.
   - Reduced-motion users receive no decorative animation.
 - **Dependencies**: `src/styles.css`, `public/manifest.webmanifest`, `public/sw.js`
@@ -83,6 +85,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - [x] Production build contains the manifest, service worker, CNAME, and icon.
   - [x] Screenshots at 320, 390, 768, and 1280 CSS pixels have no horizontal overflow or obscured controls.
   - [x] Playwright exercises Art, BIO, and About routing plus mobile navigation and 44-pixel targets at 320, 390, 768, and 1280 CSS pixels.
+  - [x] Unit tests lock the empty-state and nametag bitmaps; Playwright verifies concise page copy and complete Open Graph metadata.
   - [ ] Core editor UI remains usable at 200% browser zoom.
   - [ ] Installed PWA loads the editor offline after one online visit.
 

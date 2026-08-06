@@ -41,7 +41,7 @@ test("uploads, crops, previews, downloads, and sends a real image", async ({ pag
 
   await page.locator("#upload-art").click();
   await expect(page.locator("#art-progress-count")).toHaveText("32 / 32", { timeout: 20_000 });
-  await expect(page.locator("#app-status")).toContainText("your image is on the badge");
+  await expect(page.locator("#app-status")).toContainText("Image sent");
 
   const mock = await page.evaluate(() => window.__badgeMock);
   expect(mock.requestPortOptions).toEqual({ filters: [{ usbVendorId: 0x1d50, usbProductId: 0x6198 }] });
@@ -73,6 +73,13 @@ test("renders and downloads a nametag without requiring a source file", async ({
   await page.locator("#nametag-inverse").check();
   await expect(page.locator("#download-art")).toBeEnabled();
 
+  const crispPreview = await page.locator("#art-preview").evaluate((canvas) => canvas.toDataURL());
+  await page.locator("#dither-mode").selectOption("floyd-steinberg");
+  await page.locator("#threshold-control").fill("200");
+  await page.locator("#contrast-control").fill("80");
+  await page.waitForTimeout(50);
+  await expect.poll(() => page.locator("#art-preview").evaluate((canvas) => canvas.toDataURL())).toBe(crispPreview);
+
   const downloadPromise = page.waitForEvent("download");
   await page.locator("#download-art").click();
   const download = await downloadPromise;
@@ -99,7 +106,7 @@ test("starts a fresh clear-first transfer after a cable loss", async ({ page }) 
 
   await page.locator("#upload-art").click();
   await expect(page.locator("#art-progress-count")).toHaveText("32 / 32", { timeout: 20_000 });
-  await expect(page.locator("#app-status")).toContainText("your image is on the badge");
+  await expect(page.locator("#app-status")).toContainText("Image sent");
   mock = await page.evaluate(() => window.__badgeMock);
   expect(mock.commands.filter((command) => command === "image clear")).toHaveLength(2);
   expect(mock.imageFrames.slice(-32).map((frame) => frame.index)).toEqual([...Array(32).keys()]);

@@ -25,7 +25,7 @@ test("uploads a padded BIO program and exchanges FIFO3 words", async ({ page }) 
 
   await page.locator("#upload-bio").click();
   await expect(page.locator("#bio-progress-count")).toHaveText("60 / 60", { timeout: 30_000 });
-  await expect(page.locator("#app-status")).toContainText("installed and running");
+  await expect(page.locator("#app-status")).toContainText("BIO program running");
   await expect(page.locator("#fifo-tx-button")).toBeEnabled();
   await expect(page.locator("#fifo-rx-button")).toBeEnabled();
 

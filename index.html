@@ -4,18 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#100e0c">
-    <meta name="description" content="Make art for the DEF CON 34 badge and experiment with its BIO/SAO coprocessor directly from your browser.">
-    <meta property="og:title" content="34B.NINJA — Badge Art + BIO Lab">
-    <meta property="og:description" content="Crop, dither, preview, and send badge art. Then make the Baochip BIO engine do something weird.">
+    <meta name="description" content="Crop and send 128×128 badge art. Desktop uses Web Serial; Android WebUSB is experimental. Includes BIO/SAO tools.">
+    <meta property="og:title" content="Hack Your DEF CON 34 Badge From Your Phone">
+    <meta property="og:description" content="128×128 badge art and BIO/SAO tools. Android WebUSB is experimental; desktop uses Web Serial.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://34b.ninja/">
-    <meta property="og:image" content="https://34b.ninja/og-card.png">
+    <meta property="og:site_name" content="34B.NINJA">
+    <meta property="og:image" content="https://34b.ninja/og/34b-webusb-v2.png">
+    <meta property="og:image:secure_url" content="https://34b.ninja/og/34b-webusb-v2.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="A lit DEF CON 34 Human badge beside the words Hack your badge from your phone.">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://34b.ninja/og-card.png">
-    <title>34B.NINJA — Badge Art + BIO Lab</title>
+    <meta name="twitter:title" content="Hack Your DEF CON 34 Badge From Your Phone">
+    <meta name="twitter:description" content="128×128 badge art and BIO/SAO tools. Android WebUSB is experimental; desktop uses Web Serial.">
+    <meta name="twitter:image" content="https://34b.ninja/og/34b-webusb-v2.png">
+    <meta name="twitter:image:alt" content="A lit DEF CON 34 Human badge beside the words Hack your badge from your phone.">
+    <title>Hack Your DEF CON 34 Badge From Your Phone — 34B.NINJA</title>
     <link rel="canonical" href="https://34b.ninja/">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
@@ -52,12 +58,12 @@
         <div class="art-hero shell">
           <div class="hero-copy">
             <p class="kicker"><span>01</span> BADGE ART</p>
-            <h1 id="art-title">Put your thing<br><em>on the badge.</em></h1>
-            <p class="hero-lede">Drop in a photo, logo, meme, or make a nametag. Crop it with your fingers, preview the exact 128×128 pixels, then send it over USB.</p>
+            <h1 id="art-title">Hack on your badge <em>from your phone.</em></h1>
+            <p class="hero-lede">Crop and dither 128×128 art, then send it over USB. Android WebUSB is experimental; desktop uses Web Serial.</p>
             <div class="hero-flags" aria-label="App properties">
-              <span>LOCAL ONLY</span>
-              <span>NO FIRMWARE FLASH</span>
-              <span>PHONE FRIENDLY</span>
+              <span>LOCAL PROCESSING</span>
+              <span>STOCK FIRMWARE</span>
+              <span>NO SERVER UPLOAD</span>
             </div>
           </div>
 
@@ -85,9 +91,9 @@
           <div class="tool-heading">
             <div>
               <p class="kicker"><span>A</span> SOURCE</p>
-              <h2>Make the image</h2>
+              <h2>Prepare badge art</h2>
             </div>
-            <p>Everything happens on this device. Your image never leaves the browser.</p>
+            <p>Source images are not sent to a server.</p>
           </div>
 
           <div class="art-workspace">
@@ -101,7 +107,7 @@
                 <div id="image-dropzone" class="dropzone">
                   <div class="dropzone-icon" aria-hidden="true">↥</div>
                   <strong>Choose an image</strong>
-                  <span>or drop / paste one here</span>
+                  <span>Drop or paste</span>
                   <div class="dropzone-actions">
                     <label class="button button-primary" for="image-file" role="button" tabindex="0">OPEN IMAGE</label>
                     <label class="button button-quiet camera-button" for="camera-file" role="button" tabindex="0">USE CAMERA</label>
@@ -144,7 +150,7 @@
                   <span><strong>Inverse card</strong><small>White pixels on black</small></span>
                   <input id="nametag-inverse" type="checkbox" role="switch">
                 </label>
-                <div class="mini-note"><span aria-hidden="true">✦</span> Text is rendered locally into the same badge bitmap as any other image.</div>
+                <div class="mini-note">Text: A–Z, 0–9, basic symbols. Output: 128×128, 1-bit.</div>
               </div>
             </div>
 
@@ -157,7 +163,7 @@
                 <div class="oled-shell">
                   <canvas id="art-preview" width="128" height="128" aria-label="Exact monochrome badge preview"></canvas>
                 </div>
-                <p class="preview-note">The badge alternates your image with the DEF CON logo while idle.</p>
+                <p class="preview-note">Idle mode alternates this image with the DEF CON logo.</p>
               </div>
 
               <div class="effect-card">
@@ -165,7 +171,7 @@
                   <span>Dither</span>
                   <select id="dither-mode">
                     <option value="floyd-steinberg">Floyd–Steinberg</option>
-                    <option value="bayer">Ordered / crunchy</option>
+                    <option value="bayer">Ordered (Bayer)</option>
                     <option value="threshold">Hard threshold</option>
                   </select>
                 </label>
@@ -207,12 +213,12 @@
         <div class="bio-hero shell">
           <div>
             <p class="kicker amber"><span>02</span> BIO / SAO LAB</p>
-            <h1 id="bio-title">Make the pins<br><em>do weird stuff.</em></h1>
-            <p class="hero-lede">Upload a program to the badge’s deterministic RISC-V I/O coprocessor, map its four SAO signals, and exchange live 32-bit words through FIFO3.</p>
+            <h1 id="bio-title">Program BIO. <em>Test SAO.</em></h1>
+            <p class="hero-lede">Upload a RISC-V binary, select SAO pins, set the clock, and exchange FIFO3 words.</p>
           </div>
           <aside class="warning-card">
-            <strong>ADVANCED HARDWARE TOOL</strong>
-            <p>BIO code persists across reboots and can electrically drive attached pins. Check your circuit before running unknown code.</p>
+            <strong>PERSISTENT HARDWARE CONTROL</strong>
+            <p>BIO programs persist across reboots and can drive SAO pins. Verify the binary and circuit first.</p>
           </aside>
         </div>
 
@@ -222,15 +228,15 @@
               <div class="lab-number">01</div>
               <div class="lab-content">
                 <h2 id="program-title">Program</h2>
-                <p>Choose a flat BIO binary built for the Baochip engine. Maximum 3,840 bytes.</p>
+                <p>Flat Baochip BIO binary. Maximum: 3,840 bytes.</p>
                 <label id="bio-dropzone" class="binary-picker" for="bio-file" role="button" tabindex="0">
                   <span aria-hidden="true">.BIN</span>
                   <strong id="bio-filename">Choose BIO binary</strong>
-                  <small id="bio-filemeta">Nothing selected</small>
+                  <small id="bio-filemeta">No file selected</small>
                 </label>
                 <input id="bio-file" class="visually-hidden" type="file" accept=".bin,application/octet-stream" tabindex="-1">
                 <button id="biosao-preset" class="recipe-button" type="button">
-                  <span><strong>Capacitive touch recipe</strong><small>Configures the official biosao sample: SAO 1 + 3 at 1 MHz</small></span>
+                  <span><strong>Capacitive touch preset</strong><small>SAO 1 and 3 · 1 MHz</small></span>
                   <span aria-hidden="true">APPLY →</span>
                 </button>
               </div>
@@ -240,7 +246,7 @@
               <div class="lab-number">02</div>
               <div class="lab-content">
                 <h2 id="pins-title">SAO pins</h2>
-                <p>Select only the signals your program expects.</p>
+                <p>Select the signals used by the program.</p>
                 <div class="pin-grid">
                   <label><input type="checkbox" name="sao-pin" value="1"><span><b>SAO 1</b><small>PC5 · pin 21</small></span></label>
                   <label><input type="checkbox" name="sao-pin" value="2"><span><b>SAO 2</b><small>PC6 · pin 22</small></span></label>
@@ -253,8 +259,8 @@
             <section class="lab-card" aria-labelledby="clock-title">
               <div class="lab-number">03</div>
               <div class="lab-content">
-                <h2 id="clock-title">Quantum clock</h2>
-                <p>Set the deterministic execution rate expected by the program.</p>
+                <h2 id="clock-title">Clock</h2>
+                <p>Set the program clock.</p>
                 <label class="field frequency-field">
                   <span>Frequency</span>
                   <input id="bio-clock" type="text" value="1 MHz" inputmode="decimal" spellcheck="false">
@@ -273,13 +279,13 @@
               <div class="lab-number">04</div>
               <div class="lab-content">
                 <h2 id="run-title">Replace &amp; run</h2>
-                <p>The safe transfer clears any old program and incomplete chunks, pads locally, sends all 60 chunks, then starts the core.</p>
+                <p>Stops the current program, clears its state, sends 60 chunks, and starts the replacement.</p>
                 <label class="ack-row">
                   <input id="bio-confirm" type="checkbox">
-                  <span>I understand this stops and replaces the badge’s persistent BIO program.</span>
+                  <span>I understand this replaces the stored BIO program.</span>
                 </label>
                 <button id="upload-bio" class="button button-amber button-large" type="button" disabled>
-                  <span>UPLOAD + RUN BIO</span><span aria-hidden="true">→</span>
+                  <span>REPLACE + RUN BIO</span><span aria-hidden="true">→</span>
                 </button>
                 <div id="bio-progress" class="transfer-card compact-transfer" hidden>
                   <div><strong id="bio-progress-label">Preparing BIO…</strong><span id="bio-progress-count">0 / 60</span></div>
@@ -293,7 +299,7 @@
             <div>
               <p class="kicker amber"><span>↔</span> FIFO3</p>
               <h2 id="fifo-title">Live program link</h2>
-              <p>Constrained 32-bit send and single-sample receive. Enable these only when your program is designed for FIFO3.</p>
+              <p>Send or read one 32-bit word. Requires a compatible running program.</p>
             </div>
             <div class="fifo-controls">
               <label class="field">
@@ -316,11 +322,11 @@
       <section class="route-panel" data-panel="about" aria-labelledby="about-title" hidden>
         <div class="about-shell shell">
           <p class="kicker"><span>?</span> ABOUT</p>
-          <h1 id="about-title">Stock badge.<br><em>New tricks.</em></h1>
+          <h1 id="about-title">Connection and <em>limits.</em></h1>
           <div class="about-grid">
             <article>
               <h2>How it connects</h2>
-              <p>Normal badge firmware exposes a USB CDC console at <code>1d50:6198</code>. Desktop Chrome and Edge use Web Serial. Android Chrome can experimentally reach that same CDC interface through WebUSB.</p>
+              <p>Desktop Chrome and Edge use Web Serial. Android Chrome uses experimental WebUSB CDC. Runtime USB ID: <code>1d50:6198</code>.</p>
               <dl class="facts">
                 <div><dt>Detected transport</dt><dd id="transport-label">Checking…</dd></div>
                 <div><dt>USB identity</dt><dd id="usb-identity">Not connected</dd></div>
@@ -328,9 +334,9 @@
               </dl>
             </article>
             <article>
-              <h2>What it does not do</h2>
-              <p>Art and BIO uploads use the signed stock firmware’s console. They do not replace the badge firmware, touch FIDO credentials, or put the device into developer mode.</p>
-              <p>34b.ninja intentionally blocks the badge’s factory/debug commands and does not provide a raw terminal.</p>
+              <h2>Command limits</h2>
+              <p>Art and BIO use the stock firmware console. This app does not flash firmware, read FIDO credentials, or enable developer mode.</p>
+              <p>Factory, debug, and arbitrary console commands are blocked.</p>
             </article>
             <article>
               <h2>Browser support</h2>
@@ -342,7 +348,7 @@
               </ul>
             </article>
             <article>
-              <h2>Source rabbit holes</h2>
+              <h2>References</h2>
               <div class="source-links">
                 <a href="https://defcon.org/34b/" target="_blank" rel="noreferrer">DEF CON badge help <span>↗</span></a>
                 <a href="https://github.com/bunnie/dc34-image" target="_blank" rel="noreferrer">Official image uploader <span>↗</span></a>
@@ -368,7 +374,7 @@
     </nav>
 
     <footer class="footer shell">
-      <span>UNOFFICIAL / LOCAL-FIRST / OPEN SOURCE</span>
+      <span>UNOFFICIAL · LOCAL PROCESSING · OPEN SOURCE</span>
       <a href="https://github.com/pierce403/34b.ninja" target="_blank" rel="noreferrer">SOURCE ON GITHUB ↗</a>
     </footer>
   </body>

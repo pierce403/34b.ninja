@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "34B.NINJA Badge Lab",
+  "name": "34B.NINJA DEF CON 34 Badge Tools",
   "short_name": "34B.NINJA",
-  "description": "Badge Art and BIO/SAO tools for the DEF CON 34 Baochip badge.",
+  "description": "128×128 badge art and BIO/SAO tools. Desktop Web Serial; experimental Android WebUSB.",
   "start_url": "/#art",
   "scope": "/",
   "display": "standalone",

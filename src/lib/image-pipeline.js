@@ -171,58 +171,173 @@ export function renderBitmap(canvas, bits) {
   return canvas;
 }
 
-function fitText(context, text, maximumWidth, maximumSize, minimumSize = 8) {
-  let size = maximumSize;
-  do {
-    context.font = `900 ${size}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
-    if (context.measureText(text).width <= maximumWidth) return size;
-    size -= 1;
-  } while (size >= minimumSize);
-  return minimumSize;
+const PIXEL_FONT = Object.freeze({
+  " ": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+  A: [0x0e, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11],
+  B: [0x1e, 0x11, 0x11, 0x1e, 0x11, 0x11, 0x1e],
+  C: [0x0f, 0x10, 0x10, 0x10, 0x10, 0x10, 0x0f],
+  D: [0x1e, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1e],
+  E: [0x1f, 0x10, 0x10, 0x1e, 0x10, 0x10, 0x1f],
+  F: [0x1f, 0x10, 0x10, 0x1e, 0x10, 0x10, 0x10],
+  G: [0x0f, 0x10, 0x10, 0x17, 0x11, 0x11, 0x0f],
+  H: [0x11, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11],
+  I: [0x1f, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1f],
+  J: [0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x0e],
+  K: [0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11],
+  L: [0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1f],
+  M: [0x11, 0x1b, 0x15, 0x15, 0x11, 0x11, 0x11],
+  N: [0x11, 0x19, 0x15, 0x13, 0x11, 0x11, 0x11],
+  O: [0x0e, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e],
+  P: [0x1e, 0x11, 0x11, 0x1e, 0x10, 0x10, 0x10],
+  Q: [0x0e, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0d],
+  R: [0x1e, 0x11, 0x11, 0x1e, 0x14, 0x12, 0x11],
+  S: [0x0f, 0x10, 0x10, 0x0e, 0x01, 0x01, 0x1e],
+  T: [0x1f, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04],
+  U: [0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e],
+  V: [0x11, 0x11, 0x11, 0x11, 0x11, 0x0a, 0x04],
+  W: [0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x0a],
+  X: [0x11, 0x11, 0x0a, 0x04, 0x0a, 0x11, 0x11],
+  Y: [0x11, 0x11, 0x0a, 0x04, 0x04, 0x04, 0x04],
+  Z: [0x1f, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1f],
+  0: [0x0e, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0e],
+  1: [0x04, 0x0c, 0x04, 0x04, 0x04, 0x04, 0x0e],
+  2: [0x0e, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1f],
+  3: [0x1e, 0x01, 0x01, 0x0e, 0x01, 0x01, 0x1e],
+  4: [0x02, 0x06, 0x0a, 0x12, 0x1f, 0x02, 0x02],
+  5: [0x1f, 0x10, 0x10, 0x1e, 0x01, 0x01, 0x1e],
+  6: [0x0e, 0x10, 0x10, 0x1e, 0x11, 0x11, 0x0e],
+  7: [0x1f, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08],
+  8: [0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e],
+  9: [0x0e, 0x11, 0x11, 0x0f, 0x01, 0x01, 0x0e],
+  ".": [0x00, 0x00, 0x00, 0x00, 0x00, 0x0c, 0x0c],
+  ",": [0x00, 0x00, 0x00, 0x00, 0x0c, 0x0c, 0x08],
+  ":": [0x00, 0x0c, 0x0c, 0x00, 0x0c, 0x0c, 0x00],
+  "-": [0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00],
+  _: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f],
+  "/": [0x01, 0x02, 0x04, 0x08, 0x10, 0x00, 0x00],
+  "+": [0x00, 0x04, 0x04, 0x1f, 0x04, 0x04, 0x00],
+  "#": [0x0a, 0x1f, 0x0a, 0x0a, 0x1f, 0x0a, 0x00],
+  "!": [0x04, 0x04, 0x04, 0x04, 0x04, 0x00, 0x04],
+  "?": [0x0e, 0x11, 0x01, 0x02, 0x04, 0x00, 0x04],
+  "@": [0x0e, 0x11, 0x17, 0x15, 0x17, 0x10, 0x0f],
+  "&": [0x0c, 0x12, 0x14, 0x08, 0x15, 0x12, 0x0d],
+  "'": [0x04, 0x04, 0x02, 0x00, 0x00, 0x00, 0x00],
+  "(": [0x02, 0x04, 0x08, 0x08, 0x08, 0x04, 0x02],
+  ")": [0x08, 0x04, 0x02, 0x02, 0x02, 0x04, 0x08],
+  "=": [0x00, 0x1f, 0x00, 0x1f, 0x00, 0x00, 0x00],
+});
+
+function normalizePixelText(value, fallback, maximumLength) {
+  const normalized = String(value || fallback)
+    .normalize("NFKD")
+    .replace(/\p{Mark}/gu, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+  return [...(normalized || fallback)]
+    .slice(0, maximumLength)
+    .map((character) => (PIXEL_FONT[character] ? character : "?"))
+    .join("");
 }
 
-export function renderNametag(canvas, options = {}) {
+function pixelTextWidth(text, scale) {
+  return text.length === 0 ? 0 : (text.length * 6 - 1) * scale;
+}
+
+function splitAtWordBoundary(text, maximumCharacters) {
+  let best = null;
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] !== " ") continue;
+    const first = text.slice(0, index).trim();
+    const second = text.slice(index + 1).trim();
+    if (!first || !second || first.length > maximumCharacters || second.length > maximumCharacters) continue;
+    const score = Math.abs(first.length - second.length);
+    if (!best || score < best.score) best = { lines: [first, second], score };
+  }
+  return best?.lines || null;
+}
+
+function fitPixelText(text, maximumWidth) {
+  for (let scale = 3; scale >= 1; scale -= 1) {
+    const maximumCharacters = Math.floor((maximumWidth / scale + 1) / 6);
+    if (text.length <= maximumCharacters) return { lines: [text], scale };
+    const wordLines = splitAtWordBoundary(text, maximumCharacters);
+    if (wordLines) return { lines: wordLines, scale };
+    if (!text.includes(" ") && text.length <= maximumCharacters * 2) {
+      return { lines: [text.slice(0, maximumCharacters), text.slice(maximumCharacters)], scale };
+    }
+  }
+  return { lines: [text.slice(0, 18), text.slice(18, 36)], scale: 1 };
+}
+
+function fillBitmapRect(bitmap, x, y, width, height, bit) {
+  const left = Math.max(0, Math.floor(x));
+  const top = Math.max(0, Math.floor(y));
+  const right = Math.min(IMAGE_WIDTH, Math.ceil(x + width));
+  const bottom = Math.min(IMAGE_HEIGHT, Math.ceil(y + height));
+  for (let row = top; row < bottom; row += 1) {
+    bitmap.fill(bit, row * IMAGE_WIDTH + left, row * IMAGE_WIDTH + right);
+  }
+}
+
+function drawPixelText(bitmap, text, centerX, top, scale, bit) {
+  let x = Math.floor(centerX - pixelTextWidth(text, scale) / 2);
+  for (const character of text) {
+    const rows = PIXEL_FONT[character] || PIXEL_FONT["?"];
+    for (let row = 0; row < 7; row += 1) {
+      for (let column = 0; column < 5; column += 1) {
+        if ((rows[row] & (1 << (4 - column))) === 0) continue;
+        fillBitmapRect(bitmap, x + column * scale, top + row * scale, scale, scale, bit);
+      }
+    }
+    x += 6 * scale;
+  }
+}
+
+function drawCenteredLines(bitmap, lines, scale, regionTop, regionHeight, bit) {
+  const lineGap = 2 * scale;
+  const totalHeight = lines.length * 7 * scale + Math.max(0, lines.length - 1) * lineGap;
+  let y = regionTop + Math.floor((regionHeight - totalHeight) / 2);
+  for (const line of lines) {
+    drawPixelText(bitmap, line, IMAGE_WIDTH / 2, y, scale, bit);
+    y += 7 * scale + lineGap;
+  }
+}
+
+export function makeNametagBitmap(options = {}) {
   const {
+    header = "HELLO, MY HANDLE IS",
     handle = "YOUR HANDLE",
     subtitle = "DEF CON 34",
     inverse = false,
   } = options;
-  canvas.width = IMAGE_WIDTH;
-  canvas.height = IMAGE_HEIGHT;
-  const context = canvas.getContext("2d", { alpha: false });
-  const background = inverse ? "#000" : "#fff";
-  const foreground = inverse ? "#fff" : "#000";
-  context.fillStyle = background;
-  context.fillRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-  context.strokeStyle = foreground;
-  context.lineWidth = 3;
-  context.strokeRect(4.5, 4.5, 119, 119);
+  const backgroundBit = inverse ? 1 : 0;
+  const foregroundBit = inverse ? 0 : 1;
+  const bitmap = new Uint8Array(IMAGE_WIDTH * IMAGE_HEIGHT).fill(backgroundBit);
 
-  context.fillStyle = foreground;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.font = "700 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-  context.fillText("HELLO, MY HANDLE IS", 64, 18);
-  context.fillRect(10, 27, 108, 2);
+  fillBitmapRect(bitmap, 4, 4, 120, 2, foregroundBit);
+  fillBitmapRect(bitmap, 4, 122, 120, 2, foregroundBit);
+  fillBitmapRect(bitmap, 4, 4, 2, 120, foregroundBit);
+  fillBitmapRect(bitmap, 122, 4, 2, 120, foregroundBit);
 
-  const label = String(handle || "YOUR HANDLE").trim().toUpperCase().slice(0, 32);
-  const words = label.split(/\s+/);
-  context.font = "900 27px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-  if (words.length > 1 && context.measureText(label).width > 108) {
-    const midpoint = Math.ceil(words.length / 2);
-    const first = words.slice(0, midpoint).join(" ");
-    const second = words.slice(midpoint).join(" ");
-    fitText(context, first.length > second.length ? first : second, 108, 23, 9);
-    context.fillText(first, 64, 57);
-    context.fillText(second, 64, 82);
-  } else {
-    fitText(context, label, 108, 27, 10);
-    context.fillText(label, 64, 69);
-  }
+  const headerText = normalizePixelText(header, "BADGE ART", 19);
+  drawPixelText(bitmap, headerText, IMAGE_WIDTH / 2, 13, 1, foregroundBit);
+  fillBitmapRect(bitmap, 10, 27, 108, 2, foregroundBit);
 
-  context.font = "700 8px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-  context.fillText(String(subtitle || "DEF CON 34").trim().toUpperCase().slice(0, 28), 64, 108);
-  return canvas;
+  const handleText = normalizePixelText(handle, "YOUR HANDLE", 32);
+  const handleLayout = fitPixelText(handleText, 108);
+  drawCenteredLines(bitmap, handleLayout.lines, handleLayout.scale, 35, 52, foregroundBit);
+
+  const subtitleText = normalizePixelText(subtitle, "DEF CON 34", 28);
+  const subtitleLines = subtitleText.length <= 18
+    ? [subtitleText]
+    : splitAtWordBoundary(subtitleText, 18) || [subtitleText.slice(0, 18), subtitleText.slice(18, 36)];
+  drawCenteredLines(bitmap, subtitleLines, 1, 94, 17, foregroundBit);
+  return bitmap;
+}
+
+export function renderNametag(canvas, options = {}) {
+  return renderBitmap(canvas, makeNametagBitmap(options));
 }
 
 export async function bitmapToPngBlob(bits) {

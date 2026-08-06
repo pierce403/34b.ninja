@@ -6,8 +6,10 @@ test("uses the original-photo theme and stays usable at phone, tablet, and deskt
   await installBadgeMock(page);
   await page.goto("/#art");
 
+  await expect(page.locator("#art-title")).toHaveText("Hack on your badge from your phone.");
   await expect(page.locator(".hero-photo")).toHaveAttribute("src", /dc34-human-badge-v2-1280\.jpg$/);
   await expect.poll(() => page.locator(".hero-photo").evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect.poll(() => page.locator("#art-title em").evaluate((element) => getComputedStyle(element).webkitTextStrokeWidth)).toBe("0px");
   const theme = await page.evaluate(() => {
     const styles = getComputedStyle(document.documentElement);
     return {
@@ -29,7 +31,21 @@ test("uses the original-photo theme and stays usable at phone, tablet, and deskt
     for (const route of ["art", "bio", "about"]) {
       await page.locator(`${navigation} a[data-route="${route}"]`).click();
       await expect(page.locator(`[data-panel="${route}"]`)).toBeVisible();
+      await expect(page).toHaveTitle({
+        art: "Hack Your DEF CON 34 Badge From Your Phone — 34B.NINJA",
+        bio: "BIO / SAO — 34B.NINJA",
+        about: "About — 34B.NINJA",
+      }[route]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+      if (route === "art" && viewport.width <= 940) {
+        await expect.poll(() => page.locator(".sticky-actions").evaluate((element) => getComputedStyle(element).position)).toBe("static");
+        await page.locator(".sticky-actions").scrollIntoViewIfNeeded();
+        const [actions, mobileNav] = await Promise.all([
+          page.locator(".sticky-actions").boundingBox(),
+          page.locator(".mobile-nav").boundingBox(),
+        ]);
+        expect(actions.y + actions.height).toBeLessThanOrEqual(mobileNav.y);
+      }
     }
     if (viewport.width <= 940) {
       await expect(page.locator(".mobile-nav")).toBeVisible();
@@ -52,6 +68,41 @@ test("uses the original-photo theme and stays usable at phone, tablet, and deskt
     return { width: box.width, height: box.height };
   }));
   expect(logButtonSizes.every(({ width, height }) => width >= 44 && height >= 44)).toBe(true);
+});
+
+test("publishes complete social metadata and a 1200×630 preview", async ({ page, request }) => {
+  await page.goto("/#art");
+  await expect(page).toHaveTitle("Hack Your DEF CON 34 Badge From Your Phone — 34B.NINJA");
+
+  const expected = new Map([
+    ['meta[name="description"]', "Crop and send 128×128 badge art. Desktop uses Web Serial; Android WebUSB is experimental. Includes BIO/SAO tools."],
+    ['meta[property="og:title"]', "Hack Your DEF CON 34 Badge From Your Phone"],
+    ['meta[property="og:description"]', "128×128 badge art and BIO/SAO tools. Android WebUSB is experimental; desktop uses Web Serial."],
+    ['meta[property="og:type"]', "website"],
+    ['meta[property="og:url"]', "https://34b.ninja/"],
+    ['meta[property="og:site_name"]', "34B.NINJA"],
+    ['meta[property="og:image"]', "https://34b.ninja/og/34b-webusb-v2.png"],
+    ['meta[property="og:image:secure_url"]', "https://34b.ninja/og/34b-webusb-v2.png"],
+    ['meta[property="og:image:type"]', "image/png"],
+    ['meta[property="og:image:width"]', "1200"],
+    ['meta[property="og:image:height"]', "630"],
+    ['meta[property="og:image:alt"]', "A lit DEF CON 34 Human badge beside the words Hack your badge from your phone."],
+    ['meta[name="twitter:card"]', "summary_large_image"],
+    ['meta[name="twitter:title"]', "Hack Your DEF CON 34 Badge From Your Phone"],
+    ['meta[name="twitter:description"]', "128×128 badge art and BIO/SAO tools. Android WebUSB is experimental; desktop uses Web Serial."],
+    ['meta[name="twitter:image"]', "https://34b.ninja/og/34b-webusb-v2.png"],
+    ['meta[name="twitter:image:alt"]', "A lit DEF CON 34 Human badge beside the words Hack your badge from your phone."],
+  ]);
+  for (const [selector, content] of expected) await expect(page.locator(selector)).toHaveAttribute("content", content);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://34b.ninja/");
+
+  const response = await request.get("/og/34b-webusb-v2.png");
+  expect(response.ok()).toBe(true);
+  expect(response.headers()["content-type"]).toContain("image/png");
+  const png = await response.body();
+  expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+  expect(png.readUInt32BE(16)).toBe(1200);
+  expect(png.readUInt32BE(20)).toBe(630);
 });
 
 test("connects through the experimental WebUSB CDC adapter", async ({ page }) => {

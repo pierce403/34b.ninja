@@ -1,12 +1,12 @@
 # 34b.ninja
 
-A private-by-design, mobile-first browser workbench for the DEF CON 34 Baochip badge.
+Mobile browser tools for the DEF CON 34 Baochip badge.
 
 The site currently provides:
 
 - **Badge Art** — crop, pan, zoom, dither, preview, download, and send an exact 128×128 one-bit image to the badge;
 - **Nametag maker** — generate badge-sized handle cards without another graphics app;
-- **BIO / SAO Lab** — safely configure SAO pins and clock, upload a BIO binary, and use constrained FIFO controls; and
+- **BIO / SAO Lab** — configure SAO pins and clock, upload a BIO binary, and use constrained FIFO controls; and
 - **Web Serial + WebUSB transport** — native Web Serial on desktop Chromium and an experimental WebUSB CDC fallback on Android.
 
 All image processing and USB traffic stay in the browser. There is no backend, analytics, account, or cloud upload.
@@ -33,6 +33,12 @@ Open `http://127.0.0.1:4173/`. Localhost is a secure context for browser hardwar
 npm run check
 ```
 
+Regenerate the committed 1200×630 Open Graph card after changing its SVG or badge photo:
+
+```sh
+npm run og:render
+```
+
 The unit tests contain protocol vectors reproduced from the official Python uploaders. Playwright then runs the production build against stateful Web Serial and WebUSB CDC badge emulators, including real browser image decoding, crop/download behavior, 32- and 60-chunk transfers, FIFO3, and the mobile routes. Hardware-dependent behavior still requires a production badge. Current automated, browser, and hardware evidence is recorded in [`notes/acceptance.md`](notes/acceptance.md).
 
 Image files must report an `image/*` media type, be no larger than 30 MiB, and decode below 80 megapixels. Sources longer than 4,096 pixels on either edge are downscaled before editing. The browser still has to decode once to inspect dimensions, so a maliciously compressed image can cause a temporary memory spike.
@@ -45,6 +51,7 @@ Image files must report an `image/*` media type, be no larger than 30 MiB, and d
 - `src/lib/transfers.js` — guarded image and BIO transfer state machines.
 - `test/e2e/` — Playwright flows and the stateful serial/WebUSB badge emulator.
 - `playwright.config.js` — phone/desktop browser test configuration.
+- `public/og/34b-webusb-v2.svg` and `scripts/render-og-card.mjs` — versioned social preview source and renderer.
 - `FEATURES.md` — living behavior and acceptance specification.
 - `AGENTS.md` — contributor and coding-agent guidance.
 - `SKILLS.md` and `skills/` — reusable project procedures.

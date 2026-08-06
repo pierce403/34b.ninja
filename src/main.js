@@ -124,10 +124,10 @@ function setRoute(rawRoute) {
     else link.removeAttribute("aria-current");
   }
   document.title = route === "bio"
-    ? "BIO / SAO Lab — 34B.NINJA"
+    ? "BIO / SAO — 34B.NINJA"
     : route === "about"
       ? "About — 34B.NINJA"
-      : "Badge Art — 34B.NINJA";
+      : "Hack Your DEF CON 34 Badge From Your Phone — 34B.NINJA";
 }
 
 function routeFromHash() {
@@ -150,7 +150,7 @@ function humanError(error) {
   if (error?.name === "AbortError") return "Transfer cancelled.";
   if (error?.code === "cancelled") return "No device selected. Nothing changed.";
   if (error?.code === "timeout") return `${error.message} Check the cable and badge mode, then try again.`;
-  return error?.message || "Something went wrong talking to the badge.";
+  return error?.message || "Badge communication failed.";
 }
 
 function redactLogLine(line) {
@@ -244,7 +244,11 @@ function renderArtNow() {
     cropWorkCanvas.height = 128;
     cropWorkCanvas.getContext("2d", { alpha: false }).drawImage(nametagCanvas, 0, 0);
   } else {
-    renderNametag(cropWorkCanvas, { handle: "YOUR ART", subtitle: "DROP IMAGE HERE" });
+    renderNametag(cropWorkCanvas, {
+      header: "BADGE ART",
+      handle: "ADD IMAGE",
+      subtitle: "OR MAKE A NAMETAG",
+    });
   }
 
   const imageData = cropWorkCanvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, 128, 128);
@@ -366,7 +370,7 @@ async function handleArtUpload() {
     await ensureConnected();
     const payload = packBitmap(currentBitmap);
     await uploadImage(connection, payload, { onProgress: updateArtProgress });
-    showStatus("Done — your image is on the badge.", "success", 6_000);
+    showStatus("Image sent.", "success", 6_000);
   } catch (error) {
     showStatus(humanError(error), "error", 7_000);
   } finally {
@@ -475,7 +479,7 @@ async function handleBioUpload() {
     }, { onProgress: updateBioProgress });
     bioRunning = true;
     appendLog(`[34b] BIO active: ${result.bytes}/${BIO_BYTES} bytes, pins ${result.pins.join(", ") || "none"}, ${result.clock} Hz.`);
-    showStatus("BIO program installed and running.", "success", 6_000);
+    showStatus("BIO program running.", "success", 6_000);
   } catch (error) {
     bioRunning = false;
     showStatus(humanError(error), "error", 8_000);
@@ -737,7 +741,7 @@ function installEvents() {
     elements.bioClock.value = "1 MHz";
     biosaoRecipe = true;
     validateBioUi();
-    showStatus("Touch recipe applied. Choose a compiled biosao.bin to run it.");
+    showStatus("Touch settings applied. Choose a compiled biosao.bin.");
   });
   elements.saoPins.forEach((input) => input.addEventListener("change", () => { biosaoRecipe = false; validateBioUi(); }));
   elements.bioClock.addEventListener("input", () => { biosaoRecipe = false; validateBioUi(); });
