@@ -2,181 +2,368 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b0e0c">
-    <meta
-      name="description"
-      content="Connect to a DEF CON 34 badge from your browser and inspect its USB identity and Xous firmware version."
-    >
-    <meta property="og:title" content="34B.NINJA — DEF CON 34 badge link">
-    <meta
-      property="og:description"
-      content="A tiny, private-by-design browser console for the DEF CON 34 Baochip badge."
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#101310">
+    <meta name="description" content="Make art for the DEF CON 34 badge and experiment with its BIO/SAO coprocessor directly from your browser.">
+    <meta property="og:title" content="34B.NINJA — Badge Art + BIO Lab">
+    <meta property="og:description" content="Crop, dither, preview, and send badge art. Then make the Baochip BIO engine do something weird.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://34b.ninja/">
-    <title>34B.NINJA — DEF CON 34 badge link</title>
+    <meta property="og:image" content="https://34b.ninja/og-card.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://34b.ninja/og-card.png">
+    <title>34B.NINJA — Badge Art + BIO Lab</title>
     <link rel="canonical" href="https://34b.ninja/">
-    <link rel="stylesheet" href="styles.css">
-    <script type="module" src="app.js"></script>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/src/styles.css">
+    <script type="module" src="/src/main.js"></script>
   </head>
   <body>
-    <div class="noise" aria-hidden="true"></div>
-    <header class="site-header shell">
-      <a class="wordmark" href="#top" aria-label="34B.NINJA home">
-        <span class="prompt">&gt;</span> 34B.NINJA<span class="cursor">_</span>
+    <a class="skip-link" href="#workspace">Skip to tool</a>
+    <div class="page-grid" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="wordmark" href="#art" aria-label="34B.NINJA Badge Art">
+        <span class="wordmark-mark" aria-hidden="true">34</span>
+        <span>34B.NINJA</span>
       </a>
-      <div class="header-status">
-        <span class="status-light" aria-hidden="true"></span>
-        LOCAL LINK
-      </div>
+
+      <nav class="desktop-nav" aria-label="Tools">
+        <a href="#art" data-route="art" aria-current="page">Badge Art</a>
+        <a href="#bio" data-route="bio">BIO / SAO Lab</a>
+        <a href="#about" data-route="about">About</a>
+      </nav>
+
+      <button id="connection-button" class="connection-button" type="button">
+        <span id="connection-dot" class="connection-dot" aria-hidden="true"></span>
+        <span id="connection-label">Connect badge</span>
+      </button>
     </header>
 
-    <main id="top">
-      <section class="hero shell" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="eyebrow">UNOFFICIAL BADGE UTILITY / DC34</p>
-          <h1 id="hero-title">Plug in.<br><em>Say hello.</em></h1>
-          <p class="lede">
-            Meet your DEF CON 34 badge from the browser. Read its USB identity,
-            ask the Baochip console for its Xous version, and keep every byte on
-            your machine.
-          </p>
+    <main id="workspace">
+      <div class="app-status" id="app-status" role="status" aria-live="polite"></div>
 
-          <div class="actions">
-            <button class="button button-primary" id="connect-button" type="button">
-              <span aria-hidden="true">↳</span> CONNECT BADGE
+      <section class="route-panel" data-panel="art" aria-labelledby="art-title">
+        <div class="art-hero shell">
+          <div class="hero-copy">
+            <p class="kicker"><span>01</span> BADGE ART</p>
+            <h1 id="art-title">Put your thing<br><em>on the badge.</em></h1>
+            <p class="hero-lede">Drop in a photo, logo, meme, or make a nametag. Crop it with your fingers, preview the exact 128×128 pixels, then send it over USB.</p>
+            <div class="hero-flags" aria-label="App properties">
+              <span>LOCAL ONLY</span>
+              <span>NO FIRMWARE FLASH</span>
+              <span>PHONE FRIENDLY</span>
+            </div>
+          </div>
+
+          <div class="hero-badge" aria-hidden="true">
+            <div class="lanyard"></div>
+            <div class="badge-frame">
+              <div class="badge-meta"><span>DC34</span><span>BAOCHIP</span></div>
+              <div class="sample-oled">
+                <div class="pixel-ninja"><i></i><i></i><i></i><i></i></div>
+                <strong>HELLO</strong>
+                <span>NINJA</span>
+              </div>
+              <div class="badge-pins"><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-shell shell">
+          <div class="tool-heading">
+            <div>
+              <p class="kicker"><span>A</span> SOURCE</p>
+              <h2>Make the image</h2>
+            </div>
+            <p>Everything happens on this device. Your image never leaves the browser.</p>
+          </div>
+
+          <div class="art-workspace">
+            <div class="source-column">
+              <div class="segmented" role="tablist" aria-label="Art source">
+                <button id="photo-mode-button" role="tab" aria-selected="true" aria-controls="photo-source" type="button">Image</button>
+                <button id="nametag-mode-button" role="tab" aria-selected="false" aria-controls="nametag-source" type="button">Nametag</button>
+              </div>
+
+              <div id="photo-source" class="source-mode" role="tabpanel" aria-labelledby="photo-mode-button">
+                <div id="image-dropzone" class="dropzone">
+                  <div class="dropzone-icon" aria-hidden="true">↥</div>
+                  <strong>Choose an image</strong>
+                  <span>or drop / paste one here</span>
+                  <div class="dropzone-actions">
+                    <label class="button button-primary" for="image-file" role="button" tabindex="0">OPEN IMAGE</label>
+                    <label class="button button-quiet camera-button" for="camera-file" role="button" tabindex="0">USE CAMERA</label>
+                  </div>
+                  <input id="image-file" class="visually-hidden" type="file" accept="image/*" tabindex="-1">
+                  <input id="camera-file" class="visually-hidden" type="file" accept="image/*" capture="environment" tabindex="-1">
+                </div>
+
+                <div id="crop-card" class="crop-card" hidden>
+                  <div class="canvas-label">
+                    <span id="source-filename">IMAGE</span>
+                    <span><label class="inline-file-label" for="image-file" role="button" tabindex="0">CHANGE</label> · DRAG · PINCH</span>
+                  </div>
+                  <div class="crop-stage">
+                    <canvas id="crop-canvas" width="512" height="512" tabindex="0" aria-label="Image crop editor" aria-describedby="crop-instructions"></canvas>
+                    <div class="crop-reticle" aria-hidden="true"></div>
+                  </div>
+                  <p id="crop-instructions" class="visually-hidden">Drag or pinch the image. With a keyboard, use arrow keys to move, plus and minus to zoom, and R to rotate.</p>
+                  <div class="crop-toolbar">
+                    <label class="range-control">
+                      <span>Zoom <output id="zoom-output">100%</output></span>
+                      <input id="zoom-control" type="range" min="100" max="800" value="100" step="1">
+                    </label>
+                    <button id="rotate-image" class="icon-button" type="button" aria-label="Rotate image 90 degrees">↻</button>
+                    <button id="reset-crop" class="icon-button" type="button">RESET</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="nametag-source" class="source-mode nametag-fields" role="tabpanel" aria-labelledby="nametag-mode-button" hidden>
+                <label class="field">
+                  <span>Handle</span>
+                  <input id="nametag-handle" type="text" value="YOUR HANDLE" maxlength="32" autocomplete="off">
+                </label>
+                <label class="field">
+                  <span>Small line</span>
+                  <input id="nametag-subtitle" type="text" value="DEF CON 34" maxlength="28" autocomplete="off">
+                </label>
+                <label class="switch-row">
+                  <span><strong>Inverse card</strong><small>White pixels on black</small></span>
+                  <input id="nametag-inverse" type="checkbox" role="switch">
+                </label>
+                <div class="mini-note"><span aria-hidden="true">✦</span> Text is rendered locally into the same badge bitmap as any other image.</div>
+              </div>
+            </div>
+
+            <div class="preview-column">
+              <div class="preview-card">
+                <div class="canvas-label">
+                  <span>BADGE OLED</span>
+                  <span>128 × 128 / 1 BIT</span>
+                </div>
+                <div class="oled-shell">
+                  <canvas id="art-preview" width="128" height="128" aria-label="Exact monochrome badge preview"></canvas>
+                </div>
+                <p class="preview-note">The badge alternates your image with the DEF CON logo while idle.</p>
+              </div>
+
+              <div class="effect-card">
+                <label class="field compact-field">
+                  <span>Dither</span>
+                  <select id="dither-mode">
+                    <option value="floyd-steinberg">Floyd–Steinberg</option>
+                    <option value="bayer">Ordered / crunchy</option>
+                    <option value="threshold">Hard threshold</option>
+                  </select>
+                </label>
+                <label class="range-control">
+                  <span>Threshold <output id="threshold-output">128</output></span>
+                  <input id="threshold-control" type="range" min="32" max="224" value="128" step="1">
+                </label>
+                <label class="range-control">
+                  <span>Contrast <output id="contrast-output">0</output></span>
+                  <input id="contrast-control" type="range" min="-80" max="100" value="10" step="1">
+                </label>
+                <label class="switch-row slim">
+                  <span><strong>Invert pixels</strong></span>
+                  <input id="invert-image" type="checkbox" role="switch">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="art-progress" class="transfer-card" hidden>
+            <div>
+              <strong id="art-progress-label">Preparing image…</strong>
+              <span id="art-progress-count">0 / 32</span>
+            </div>
+            <progress id="art-progress-bar" max="32" value="0"></progress>
+          </div>
+
+          <div class="sticky-actions">
+            <button id="download-art" class="button button-quiet" type="button" disabled>DOWNLOAD PNG</button>
+            <button id="clear-art" class="button button-danger-quiet" type="button" disabled>CLEAR BADGE ART</button>
+            <button id="upload-art" class="button button-primary button-large" type="button" disabled>
+              <span>SEND TO BADGE</span><span aria-hidden="true">→</span>
             </button>
-            <button class="button button-secondary" id="disconnect-button" type="button" disabled>
-              DISCONNECT
-            </button>
           </div>
-
-          <p class="browser-note" id="browser-note">
-            Requires a desktop Chromium browser and a secure connection.
-          </p>
-        </div>
-
-        <div class="badge-visual" aria-label="Stylized badge connection diagram">
-          <div class="orbit orbit-one" aria-hidden="true"></div>
-          <div class="orbit orbit-two" aria-hidden="true"></div>
-          <div class="badge-card">
-            <div class="badge-topline"><span>BAOCHIP-1X</span><span>DC34</span></div>
-            <div class="chip-grid" aria-hidden="true">
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
-            </div>
-            <div class="badge-face">
-              <span class="eye eye-left"></span>
-              <span class="eye eye-right"></span>
-              <span class="mouth"></span>
-            </div>
-            <div class="badge-bottomline">TRANSPARENT SILICON / OPEN SOURCE</div>
-          </div>
-          <div class="usb-tail" aria-hidden="true"><span>USB-C</span></div>
         </div>
       </section>
 
-      <section class="console-section shell" aria-labelledby="console-title">
-        <div class="section-heading">
+      <section class="route-panel" data-panel="bio" aria-labelledby="bio-title" hidden>
+        <div class="bio-hero shell">
           <div>
-            <p class="eyebrow">SERIAL CONSOLE / 1,000,000 BAUD</p>
-            <h2 id="console-title">Badge readout</h2>
+            <p class="kicker amber"><span>02</span> BIO / SAO LAB</p>
+            <h1 id="bio-title">Make the pins<br><em>do weird stuff.</em></h1>
+            <p class="hero-lede">Upload a program to the badge’s deterministic RISC-V I/O coprocessor, map its four SAO signals, and exchange live 32-bit words through FIFO3.</p>
           </div>
-          <div class="connection-state" id="connection-state" role="status" aria-live="polite">
-            <span class="state-dot" aria-hidden="true"></span>
-            <span id="connection-label">STANDING BY</span>
-          </div>
+          <aside class="warning-card">
+            <strong>ADVANCED HARDWARE TOOL</strong>
+            <p>BIO code persists across reboots and can electrically drive attached pins. Check your circuit before running unknown code.</p>
+          </aside>
         </div>
 
-        <div class="readout-grid">
-          <dl class="device-facts" aria-label="Connected device information">
-            <div class="fact">
-              <dt>USB vendor ID</dt>
-              <dd id="vendor-id">—</dd>
-            </div>
-            <div class="fact">
-              <dt>USB product ID</dt>
-              <dd id="product-id">—</dd>
-            </div>
-            <div class="fact fact-wide">
-              <dt>Xous version</dt>
-              <dd id="xous-version">Connect to query</dd>
-            </div>
-          </dl>
+        <div class="tool-shell bio-shell shell">
+          <div class="bio-grid">
+            <section class="lab-card" aria-labelledby="program-title">
+              <div class="lab-number">01</div>
+              <div class="lab-content">
+                <h2 id="program-title">Program</h2>
+                <p>Choose a flat BIO binary built for the Baochip engine. Maximum 3,840 bytes.</p>
+                <label id="bio-dropzone" class="binary-picker" for="bio-file" role="button" tabindex="0">
+                  <span aria-hidden="true">.BIN</span>
+                  <strong id="bio-filename">Choose BIO binary</strong>
+                  <small id="bio-filemeta">Nothing selected</small>
+                </label>
+                <input id="bio-file" class="visually-hidden" type="file" accept=".bin,application/octet-stream" tabindex="-1">
+                <button id="biosao-preset" class="recipe-button" type="button">
+                  <span><strong>Capacitive touch recipe</strong><small>Configures the official biosao sample: SAO 1 + 3 at 1 MHz</small></span>
+                  <span aria-hidden="true">APPLY →</span>
+                </button>
+              </div>
+            </section>
 
-          <div class="terminal-wrap">
-            <div class="terminal-bar">
-              <span>34b://badge/console</span>
-              <button id="query-button" class="terminal-action" type="button" disabled>
-                QUERY VERSION
-              </button>
-            </div>
-            <pre id="terminal" class="terminal" role="log" aria-live="polite" aria-label="Badge console output"><span class="terminal-muted">[34b] Waiting for a badge…</span></pre>
+            <section class="lab-card" aria-labelledby="pins-title">
+              <div class="lab-number">02</div>
+              <div class="lab-content">
+                <h2 id="pins-title">SAO pins</h2>
+                <p>Select only the signals your program expects.</p>
+                <div class="pin-grid">
+                  <label><input type="checkbox" name="sao-pin" value="1"><span><b>SAO 1</b><small>PC5 · pin 21</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="2"><span><b>SAO 2</b><small>PC6 · pin 22</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="3"><span><b>SAO 3</b><small>PC14 · pin 30</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="4"><span><b>SAO 4</b><small>PC15 · pin 31</small></span></label>
+                </div>
+              </div>
+            </section>
+
+            <section class="lab-card" aria-labelledby="clock-title">
+              <div class="lab-number">03</div>
+              <div class="lab-content">
+                <h2 id="clock-title">Quantum clock</h2>
+                <p>Set the deterministic execution rate expected by the program.</p>
+                <label class="field frequency-field">
+                  <span>Frequency</span>
+                  <input id="bio-clock" type="text" value="1 MHz" inputmode="decimal" spellcheck="false">
+                </label>
+                <div class="preset-row" aria-label="Clock presets">
+                  <button type="button" data-clock="1 MHz">1 MHz</button>
+                  <button type="button" data-clock="10 MHz">10 MHz</button>
+                  <button type="button" data-clock="48 MHz">48 MHz</button>
+                  <button type="button" data-clock="350 MHz">350 MHz</button>
+                </div>
+                <p id="clock-validation" class="validation-line">Valid range: 25 kHz–350 MHz.</p>
+              </div>
+            </section>
+
+            <section class="lab-card run-card" aria-labelledby="run-title">
+              <div class="lab-number">04</div>
+              <div class="lab-content">
+                <h2 id="run-title">Replace &amp; run</h2>
+                <p>The safe transfer clears any old program and incomplete chunks, pads locally, sends all 60 chunks, then starts the core.</p>
+                <label class="ack-row">
+                  <input id="bio-confirm" type="checkbox">
+                  <span>I understand this stops and replaces the badge’s persistent BIO program.</span>
+                </label>
+                <button id="upload-bio" class="button button-amber button-large" type="button" disabled>
+                  <span>UPLOAD + RUN BIO</span><span aria-hidden="true">→</span>
+                </button>
+                <div id="bio-progress" class="transfer-card compact-transfer" hidden>
+                  <div><strong id="bio-progress-label">Preparing BIO…</strong><span id="bio-progress-count">0 / 60</span></div>
+                  <progress id="bio-progress-bar" max="60" value="0"></progress>
+                </div>
+              </div>
+            </section>
           </div>
+
+          <section class="fifo-lab" aria-labelledby="fifo-title">
+            <div>
+              <p class="kicker amber"><span>↔</span> FIFO3</p>
+              <h2 id="fifo-title">Live program link</h2>
+              <p>Constrained 32-bit send and single-sample receive. Enable these only when your program is designed for FIFO3.</p>
+            </div>
+            <div class="fifo-controls">
+              <label class="field">
+                <span>TX value</span>
+                <input id="fifo-tx-value" type="text" value="0x00000001" inputmode="text" spellcheck="false">
+              </label>
+              <button id="fifo-tx-button" class="button button-quiet" type="button" disabled>SEND WORD</button>
+              <button id="fifo-rx-button" class="button button-quiet" type="button" disabled>READ ONE WORD</button>
+              <div class="fifo-readout">
+                <span>LAST RX</span>
+                <strong id="fifo-rx-value">—</strong>
+                <small id="fifo-rx-decoded">No sample yet</small>
+              </div>
+            </div>
+            <button id="clear-bio" class="button button-danger-quiet" type="button" disabled>STOP + CLEAR BIO</button>
+          </section>
         </div>
       </section>
 
-      <section class="how-it-works shell" aria-labelledby="how-title">
-        <div class="section-heading compact-heading">
-          <div>
-            <p class="eyebrow">NO DRIVERS / NO CLOUD / NO NONSENSE</p>
-            <h2 id="how-title">Three moves</h2>
+      <section class="route-panel" data-panel="about" aria-labelledby="about-title" hidden>
+        <div class="about-shell shell">
+          <p class="kicker"><span>?</span> ABOUT</p>
+          <h1 id="about-title">Stock badge.<br><em>New tricks.</em></h1>
+          <div class="about-grid">
+            <article>
+              <h2>How it connects</h2>
+              <p>Normal badge firmware exposes a USB CDC console at <code>1d50:6198</code>. Desktop Chrome and Edge use Web Serial. Android Chrome can experimentally reach that same CDC interface through WebUSB.</p>
+              <dl class="facts">
+                <div><dt>Detected transport</dt><dd id="transport-label">Checking…</dd></div>
+                <div><dt>USB identity</dt><dd id="usb-identity">Not connected</dd></div>
+                <div><dt>Xous version</dt><dd id="xous-version">Not queried</dd></div>
+              </dl>
+            </article>
+            <article>
+              <h2>What it does not do</h2>
+              <p>Art and BIO uploads use the signed stock firmware’s console. They do not replace the badge firmware, touch FIDO credentials, or put the device into developer mode.</p>
+              <p>34b.ninja intentionally blocks the badge’s factory/debug commands and does not provide a raw terminal.</p>
+            </article>
+            <article>
+              <h2>Browser support</h2>
+              <ul class="compat-list">
+                <li><span class="good">✓</span> Chrome / Edge on desktop</li>
+                <li><span class="experimental">~</span> Android Chrome + USB-C OTG (experimental)</li>
+                <li><span class="bad">×</span> Safari and Firefox</li>
+                <li><span class="bad">×</span> iPhone / iPad USB browsers</li>
+              </ul>
+            </article>
+            <article>
+              <h2>Source rabbit holes</h2>
+              <div class="source-links">
+                <a href="https://defcon.org/34b/" target="_blank" rel="noreferrer">DEF CON badge help <span>↗</span></a>
+                <a href="https://github.com/bunnie/dc34-image" target="_blank" rel="noreferrer">Official image uploader <span>↗</span></a>
+                <a href="https://github.com/bunnie/dc34-bio" target="_blank" rel="noreferrer">Official BIO uploader <span>↗</span></a>
+                <a href="https://github.com/bunnie/dc34-console" target="_blank" rel="noreferrer">Console firmware <span>↗</span></a>
+              </div>
+            </article>
           </div>
-        </div>
-        <ol class="steps">
-          <li>
-            <span class="step-number">01</span>
-            <h3>Power the badge</h3>
-            <p>Connect its USB-C port to your computer and leave it in normal badge mode.</p>
-          </li>
-          <li>
-            <span class="step-number">02</span>
-            <h3>Approve the port</h3>
-            <p>Press Connect Badge and choose the badge’s USB serial device in Chrome or Edge.</p>
-          </li>
-          <li>
-            <span class="step-number">03</span>
-            <h3>Read the signal</h3>
-            <p>The page reads USB IDs and sends the official read-only <code>ver xous</code> command.</p>
-          </li>
-        </ol>
-      </section>
 
-      <section class="privacy-strip">
-        <div class="shell privacy-inner">
-          <p><strong>Your badge stays yours.</strong> The serial connection is direct between this browser and your USB device.</p>
-          <p>No analytics. No uploads. No badge data stored.</p>
-        </div>
-      </section>
-
-      <section class="resources shell" aria-labelledby="resources-title">
-        <div>
-          <p class="eyebrow">KEEP DIGGING</p>
-          <h2 id="resources-title">Official rabbit holes</h2>
-        </div>
-        <div class="resource-links">
-          <a href="https://media.defcon.org/DEF%20CON%2034/DEF%20CON%2034%20badge/badge-index.html" target="_blank" rel="noreferrer">
-            <span>DEF CON badge help</span><span aria-hidden="true">↗</span>
-          </a>
-          <a href="https://github.com/bunnie/dc34-console" target="_blank" rel="noreferrer">
-            <span>Badge console source</span><span aria-hidden="true">↗</span>
-          </a>
-          <a href="https://github.com/bunnie/dc34-image" target="_blank" rel="noreferrer">
-            <span>Official image uploader</span><span aria-hidden="true">↗</span>
-          </a>
-          <a href="https://github.com/baochip/baochip-1x" target="_blank" rel="noreferrer">
-            <span>Baochip-1x source</span><span aria-hidden="true">↗</span>
-          </a>
+          <details class="technical-log-wrap">
+            <summary>Technical badge log</summary>
+            <div class="log-actions"><button id="copy-log" type="button">COPY LOG</button><button id="clear-log" type="button">CLEAR</button></div>
+            <pre id="technical-log" class="technical-log" aria-live="off">[34b] No badge traffic yet.</pre>
+          </details>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer shell">
-      <span>34B.NINJA / BUILT FOR THE BADGE CURIOUS</span>
-      <a href="https://github.com/pierce403/34b.ninja">SOURCE ON GITHUB ↗</a>
+    <nav class="mobile-nav" aria-label="Tools">
+      <a href="#art" data-route="art" aria-current="page"><span aria-hidden="true">▧</span>ART</a>
+      <a href="#bio" data-route="bio"><span aria-hidden="true">⌁</span>BIO LAB</a>
+      <a href="#about" data-route="about"><span aria-hidden="true">?</span>ABOUT</a>
+    </nav>
+
+    <footer class="footer shell">
+      <span>UNOFFICIAL / LOCAL-FIRST / OPEN SOURCE</span>
+      <a href="https://github.com/pierce403/34b.ninja" target="_blank" rel="noreferrer">SOURCE ON GITHUB ↗</a>
     </footer>
   </body>
 </html>
