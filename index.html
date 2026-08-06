@@ -61,18 +61,24 @@
             </div>
           </div>
 
-          <div class="hero-badge" aria-hidden="true">
-            <div class="lanyard"></div>
-            <div class="badge-frame">
-              <div class="badge-meta"><span>DC34</span><span>BAOCHIP</span></div>
-              <div class="sample-oled">
-                <div class="pixel-ninja"><i></i><i></i><i></i><i></i></div>
-                <strong>HELLO</strong>
-                <span>NINJA</span>
-              </div>
-              <div class="badge-pins"><i></i><i></i><i></i><i></i></div>
-            </div>
-          </div>
+          <figure class="hero-badge">
+            <picture class="hero-photo-frame">
+              <source
+                type="image/webp"
+                srcset="/images/dc34-human-badge-v1-768.webp 768w, /images/dc34-human-badge-v1-1280.webp 1280w"
+                sizes="(max-width: 760px) calc(100vw - 28px), (max-width: 940px) min(520px, calc(100vw - 40px)), 460px"
+              >
+              <img
+                class="hero-photo"
+                src="/images/dc34-human-badge-v1-1280.jpg"
+                width="1280"
+                height="960"
+                alt="A lit DEF CON 34 Human badge showing a skull-and-crossbones on its monochrome screen."
+                decoding="async"
+                fetchpriority="high"
+              >
+            </picture>
+          </figure>
         </div>
 
         <div class="tool-shell shell">

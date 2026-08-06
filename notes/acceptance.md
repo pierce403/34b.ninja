@@ -21,6 +21,8 @@ Headless Chromium 138.0.7204.0 rendered the current Vite app on 2026-08-06 at 32
 
 Visual evidence: [`notes/qa/mobile-layout-2026-08-06.png`](qa/mobile-layout-2026-08-06.png). The reusable state harness is `test/responsive-harness.html`.
 
+The responsive hero replacement was rechecked after the photo integration at 320, 390, 768, and 1280 CSS pixels. Each viewport loaded the expected WebP source, matched its viewport and scroll width, and produced no console or page errors. The 4:3 badge remained fully visible with the mobile navigation present. Visual evidence: [`notes/qa/hero-layout-2026-08-06.png`](qa/hero-layout-2026-08-06.png).
+
 ## Source-inspection anchors
 
 - Secure-context support detection, native-first selection, runtime VID/PID filter, experimental CDC fallback, 1,000,000-baud open options, one-command queue, exact response matching, and disconnect cleanup: `src/lib/badge-connection.js`.
@@ -42,6 +44,7 @@ No production-badge result is recorded yet. Keep the corresponding `FEATURES.md`
 | BIO install/reload | Known-safe binary built from pinned source + production badge | pending | — |
 | FIFO3 telemetry | Pinned `biosao` source, recorded binary hash, and SAO touch fixture | pending | — |
 | Responsive layout | 320, 390, 768, 1280 CSS pixels | passed 2026-08-06 | [contact sheet](qa/mobile-layout-2026-08-06.png); Chromium measurements above |
+| Responsive hero photo | 320, 390, 768, 1280 CSS pixels | passed 2026-08-06 | [contact sheet](qa/hero-layout-2026-08-06.png); zero overflow/errors |
 | Zoom accessibility | Editor at 200% browser zoom | pending | — |
 | Offline shell | Installed PWA after one online visit | pending | — |
 
