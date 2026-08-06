@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>34b.ninja responsive harness</title>
+    <style>
+      :root { color-scheme: dark; font-family: ui-monospace, monospace; }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 18px; background: #080a08; color: #b9f46a; }
+      header { display: flex; width: min(100%, 1280px); margin-bottom: 12px; justify-content: space-between; }
+      iframe { display: block; height: 900px; border: 1px solid #536153; background: #101310; }
+    </style>
+  </head>
+  <body>
+    <header><strong id="label">RESPONSIVE QA</strong><span>test-only harness</span></header>
+    <iframe id="preview" title="34b.ninja responsive preview"></iframe>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const allowedWidths = new Set([320, 390, 768, 1280]);
+      const requestedWidth = Number(params.get("width"));
+      const width = allowedWidths.has(requestedWidth) ? requestedWidth : 390;
+      const route = params.get("route") === "bio" ? "bio" : "art";
+      const focus = params.get("focus") === "tool" ? "tool" : "page";
+      const frame = document.querySelector("#preview");
+      frame.width = width;
+      frame.src = `../index.html#${route}`;
+      document.querySelector("#label").textContent = `${width}px · ${route.toUpperCase()} · ${focus.toUpperCase()}`;
+      frame.addEventListener("load", () => {
+        if (focus === "tool") {
+          const style = frame.contentDocument.createElement("style");
+          style.textContent = ".art-hero,.bio-hero{display:none!important}.tool-shell{margin-top:16px!important}";
+          frame.contentDocument.head.append(style);
+        }
+        if (params.get("state") === "crop") {
+          frame.contentDocument.querySelector("#image-dropzone").hidden = true;
+          frame.contentDocument.querySelector("#crop-card").hidden = false;
+          const canvas = frame.contentDocument.querySelector("#crop-canvas");
+          const context = canvas.getContext("2d");
+          const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+          gradient.addColorStop(0, "#d8ead0");
+          gradient.addColorStop(1, "#273127");
+          context.fillStyle = gradient;
+          context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      });
+    </script>
+  </body>
+</html>

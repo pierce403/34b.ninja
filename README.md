@@ -1,39 +1,62 @@
 # 34b.ninja
 
-An unofficial, private-by-design browser utility for the DEF CON 34 Baochip badge.
+A private-by-design, mobile-first browser workbench for the DEF CON 34 Baochip badge.
 
-The site uses the Web Serial API to:
+The site currently provides:
 
-- ask the user to select the badge's USB serial port;
-- display the USB vendor and product identifiers exposed to the browser; and
-- send the official read-only `ver xous` console command and display the response.
+- **Badge Art** — crop, pan, zoom, dither, preview, download, and send an exact 128×128 one-bit image to the badge;
+- **Nametag maker** — generate badge-sized handle cards without another graphics app;
+- **BIO / SAO Lab** — safely configure SAO pins and clock, upload a BIO binary, and use constrained FIFO controls; and
+- **Web Serial + WebUSB transport** — native Web Serial on desktop Chromium and an experimental WebUSB CDC fallback on Android.
 
-Everything runs locally in the browser. The site has no backend, analytics, or storage.
+All image processing and USB traffic stay in the browser. There is no backend, analytics, account, or cloud upload.
 
-## Browser support
+The original command-line image workflow is the Python [`dc34-image`](https://github.com/bunnie/dc34-image) uploader. 34b.ninja reproduces its bitmap packing and chunk framing in the browser, while adding crop, scale, dithering, and nametag tools.
 
-Web Serial requires a secure context and a supporting Chromium-based desktop browser such as Chrome or Edge. Device access is always initiated by a user gesture and confirmed in the browser's port picker.
+Android WebUSB CDC is implemented but not yet verified on a production badge. Treat it as experimental until the open hardware checks in [`notes/acceptance.md`](notes/acceptance.md) are complete.
 
 ## Develop
 
+Requires Node.js 22.12 or newer.
+
 ```sh
+npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:4173/`. Localhost is treated as a secure context for Web Serial development.
+Open `http://127.0.0.1:4173/`. Localhost is a secure context for browser hardware APIs.
 
-## Test
+## Verify
 
 ```sh
-npm test
+npm run check
 ```
 
-## Badge references
+The unit tests contain protocol vectors reproduced from the official Python uploaders. Hardware-dependent browser behavior still requires a production badge. Current automated, browser, and hardware evidence is recorded in [`notes/acceptance.md`](notes/acceptance.md).
 
-- [Official DEF CON 34 badge help](https://media.defcon.org/DEF%20CON%2034/DEF%20CON%2034%20badge/badge-index.html)
-- [DC34 console source](https://github.com/bunnie/dc34-console)
+Image files must report an `image/*` media type, be no larger than 30 MiB, and decode below 80 megapixels. Sources longer than 4,096 pixels on either edge are downscaled before editing. The browser still has to decode once to inspect dimensions, so a maliciously compressed image can cause a temporary memory spike.
+
+## Project map
+
+- `src/lib/image-pipeline.js` — crop rendering, monochrome conversion, packing, and PNG preview.
+- `src/lib/protocol.js` — CRC32, chunks, command validation, and BIO configuration.
+- `src/lib/badge-connection.js` — native Web Serial and WebUSB CDC transport.
+- `src/lib/transfers.js` — guarded image and BIO transfer state machines.
+- `FEATURES.md` — living behavior and acceptance specification.
+- `AGENTS.md` — contributor and coding-agent guidance.
+- `SKILLS.md` and `skills/` — reusable project procedures.
+- `MEMORY.md` and `notes/` — durable protocol decisions and research pointers.
+
+## Primary references
+
+- [DEF CON 34 badge help](https://defcon.org/34b/)
+- [Vault application](https://github.com/bunnie/dc34-vault)
+- [Badge console](https://github.com/bunnie/dc34-console)
 - [Official image uploader](https://github.com/bunnie/dc34-image)
-- [Baochip-1x source](https://github.com/baochip/baochip-1x)
+- [Official BIO uploader](https://github.com/bunnie/dc34-bio)
+- [Baochip-1x documentation](https://github.com/baochip/baochip-1x)
+
+Exact inspected commits and canonical source links are pinned in [`notes/protocol.md`](notes/protocol.md).
 
 ## License
 

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">34B.NINJA — Badge Art and BIO Lab</title>
+  <desc id="desc">A dark hardware workbench card showing a monochrome badge screen and the text Badge Art plus BIO Lab.</desc>
+  <rect width="1200" height="630" fill="#101310"/>
+  <g opacity=".18" stroke="#758b75">
+    <path d="M0 72h1200M0 144h1200M0 216h1200M0 288h1200M0 360h1200M0 432h1200M0 504h1200M0 576h1200"/>
+    <path d="M72 0v630M144 0v630M216 0v630M288 0v630M360 0v630M432 0v630M504 0v630M576 0v630M648 0v630M720 0v630M792 0v630M864 0v630M936 0v630M1008 0v630M1080 0v630M1152 0v630"/>
+  </g>
+  <rect x="66" y="62" width="614" height="506" rx="34" fill="#171b17" stroke="#3f4b3f" stroke-width="2"/>
+  <text x="112" y="145" fill="#b9f46a" font-family="ui-monospace,monospace" font-size="24" font-weight="800" letter-spacing="3">34B.NINJA</text>
+  <text x="108" y="298" fill="#f1f3e9" font-family="ui-sans-serif,system-ui,sans-serif" font-size="98" font-weight="850" letter-spacing="-7">BADGE ART</text>
+  <text x="108" y="394" fill="none" stroke="#f0c75e" stroke-width="2" font-family="ui-sans-serif,system-ui,sans-serif" font-size="88" font-weight="850" letter-spacing="-6">+ BIO LAB</text>
+  <text x="112" y="493" fill="#a7aea2" font-family="ui-monospace,monospace" font-size="22">CROP · DITHER · SEND · EXPERIMENT</text>
+  <g transform="translate(788 86)">
+    <rect width="328" height="458" rx="34" fill="#242a24" stroke="#829282" stroke-width="3"/>
+    <text x="34" y="48" fill="#a7aea2" font-family="ui-monospace,monospace" font-size="15">DC34 / BAOCHIP</text>
+    <rect x="58" y="84" width="212" height="212" fill="#050605" stroke="#586658" stroke-width="6"/>
+    <rect x="76" y="102" width="176" height="176" fill="#edf2e5"/>
+    <g fill="#101310">
+      <rect x="110" y="132" width="38" height="38"/><rect x="180" y="132" width="38" height="38"/>
+      <rect x="110" y="202" width="38" height="38"/><rect x="180" y="202" width="38" height="38"/>
+      <rect x="145" y="167" width="38" height="38"/>
+    </g>
+    <text x="164" y="330" fill="#b9f46a" font-family="ui-monospace,monospace" font-size="16" text-anchor="middle">128 × 128 / 1 BIT</text>
+    <g fill="#f0c75e"><circle cx="76" cy="404" r="15"/><circle cx="134" cy="404" r="15"/><circle cx="192" cy="404" r="15"/><circle cx="250" cy="404" r="15"/></g>
+  </g>
+</svg>

@@ -1,11 +1,23 @@
 {
   "name": "34b-ninja",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "A browser-based serial inspector for the DEF CON 34 badge.",
+  "description": "A mobile-first browser art uploader and BIO/SAO lab for the DEF CON 34 badge.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
-    "dev": "node scripts/serve.mjs",
-    "test": "node --test"
+    "dev": "vite --host 127.0.0.1 --port 4173",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test": "node --test",
+    "check": "npm test && npm run build"
+  },
+  "dependencies": {
+    "web-serial-polyfill": "1.0.15"
+  },
+  "devDependencies": {
+    "vite": "8.2.1"
   }
 }
