@@ -30,7 +30,7 @@ The protocol conclusions below come from these pinned implementation files:
 - Serial configuration used by official uploaders: 1,000,000 baud, 8-N-1, no flow control.
 - Bootloader VID:PID `1d50:6196` is deliberately outside current scope.
 
-Native Web Serial is preferred. On a secure origin without `navigator.serial`, the current app loads `web-serial-polyfill` 1.0.15 over `navigator.usb`. That implementation adds CDC control class `0x02` to the chooser filter, selects configuration 1 when necessary, finds and claims the first CDC control (`0x02`) and data (`0x0a`) interfaces, sends `SET_LINE_CODING` (`0x20`) for 1,000,000-baud 8-N-1, asserts DTR with `SET_CONTROL_LINE_STATE` (`0x22`), and moves bytes through the data interface's bulk endpoints. It does not claim the badge's HID functions. This describes source behavior, not completed Android hardware validation.
+Native Web Serial is preferred. On a secure origin without `navigator.serial`, the current app uses a statically bundled `web-serial-polyfill` 1.0.15 backend over `navigator.usb`, keeping `requestDevice()` directly in the connection tap's transient user activation. That implementation adds CDC control class `0x02` to the chooser filter, selects configuration 1 when necessary, finds and claims the first CDC control (`0x02`) and data (`0x0a`) interfaces, sends `SET_LINE_CODING` (`0x20`) for 1,000,000-baud 8-N-1, asserts DTR with `SET_CONTROL_LINE_STATE` (`0x22`), and moves bytes through the data interface's bulk endpoints. It does not claim the badge's HID functions. This describes source behavior, not completed Android hardware validation.
 
 ## Image
 

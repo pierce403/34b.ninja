@@ -4,14 +4,16 @@ This is the durable ledger behind checked criteria in `FEATURES.md`. Source insp
 
 ## Automated gate
 
-Most recent local run, 2026-08-06:
+Most recent local run, 2026-08-07:
 
 - `npm run check` passed: 21 Node tests, the Vite production build, and 7 Playwright tests in Chromium.
+- The run used system Google Chrome through the repository's `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` override because the lockfile-pinned Playwright browser was not installed locally.
 - `test/badge-connection.test.mjs` covers the runtime chooser filter, native transport preference, insecure-state detection, exact shell-echo response gate, and whole-operation serialization.
 - `test/protocol.test.mjs` covers CRC32, canonical 70-byte chunk vectors, BIO zero-padding to 60 chunks, SAO mapping, clock bounds, representative allowlist acceptance/rejection, and constrained FIFO3 parsing.
 - `test/image-pipeline.test.mjs` covers logical corner orientation, black/white polarity, pinned single-pixel Base64/CRC vectors, threshold conversion, inversion, deterministic 5×7 nametag glyphs, and the empty OLED state.
 - `test/transfers.test.mjs` covers image clear plus 32 chunks and BIO clear/configure plus 60 chunks/reload, including the absence of `bio pad`, a full clear-and-restart after ambiguous image completion, and no retry after explicit firmware rejection.
 - `test/repository.test.mjs` covers the two tool surfaces, PWA/custom-domain assets, deployment gate, and recurse.bot document split.
+- `test/repository.test.mjs` also locks the static `web-serial-polyfill` import and rejects restoring the dynamic import inside the connection path.
 - `test/e2e/art.spec.js` decodes the faithful badge JPEG, changes crop/zoom/rotation/dither state, validates a downloaded 128×128 PNG, uploads 32 CRC-valid frames, verifies chooser/open options, and confirms chunk payloads are redacted from the UI log. It also covers the no-file nametag flow, keyboard tab behavior, and a virtual cable loss followed by a fresh clear-first reconnect transfer.
 - `test/e2e/bio.spec.js` uploads 65 bytes padded to 3,840, validates the clear/ready/pin/clock/60-frame/reload sequence, proves `bio pad` is absent, parses FIFO3 touch telemetry, and confirms disconnect disables FIFO controls.
 - `test/e2e/navigation.spec.js` checks Art/BIO/About at 320, 390, 768, and 1280 CSS pixels, the photo-derived theme tokens and v2 hero asset, minimum mobile targets, concise headings, complete social metadata, the 1200×630 Open Graph PNG, and a WebUSB CDC device with polyfill-relevant descriptors, class requests, and bulk endpoints.
@@ -31,7 +33,7 @@ The copy and typography pass removed outlined headings, replaced platform-font O
 
 ## Source-inspection anchors
 
-- Secure-context support detection, native-first selection, runtime VID/PID filter, experimental CDC fallback, 1,000,000-baud open options, one-command queue, exact response matching, and disconnect cleanup: `src/lib/badge-connection.js`.
+- Secure-context support detection, native-first selection, static activation-preserving WebUSB polyfill import, runtime VID/PID filter, experimental CDC fallback, 1,000,000-baud open options, one-command queue, exact response matching, and disconnect cleanup: `src/lib/badge-connection.js`.
 - Exact command allowlist, payload constants, chunk constructor, clock/pin parsing, and FIFO3 log filter: `src/lib/protocol.js`.
 - Timeouts, per-command retries, full restart policy, final-chunk handling, and 32/60-chunk flows: `src/lib/transfers.js`.
 - 30 MiB/MIME gate, post-decode 80-megapixel rejection, and 4,096-pixel retained-source bound: `src/main.js` (`decodeImageFile`).
@@ -44,7 +46,7 @@ No production-badge result is recorded yet. Keep the corresponding `FEATURES.md`
 | Check | Target | Status | Evidence |
 | --- | --- | --- | --- |
 | Native connection and image upload | Desktop Chromium + production badge | pending | — |
-| Experimental CDC connection and image upload | Android Chromium + USB-C OTG + production badge | pending | — |
+| Experimental CDC connection and image upload | Android Chromium + USB-C OTG + production badge | pending | Not run 2026-08-07: no physical Android phone, production badge, or cable was exposed to this execution environment, so phone model, Chrome/Android versions, cable, observed VID/PID, chooser contents, and connection result remain unavailable. |
 | Image orientation fixture | Six logical corner pixels on OLED | pending | — |
 | Touch crop/pinch | Physical Android phone | pending | — |
 | BIO install/reload | Known-safe binary built from pinned source + production badge | pending | — |

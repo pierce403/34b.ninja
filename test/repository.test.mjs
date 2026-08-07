@@ -3,9 +3,10 @@ import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 test("ships the two mobile tools and custom-domain assets", async () => {
-  const [html, appMain, rootCname, cname, manifest, workflow, serviceWorker, ogSvg, ogPng, ogRenderer, icon192, icon512, hero768, hero1280, heroJpeg] = await Promise.all([
+  const [html, appMain, badgeConnection, rootCname, cname, manifest, workflow, serviceWorker, ogSvg, ogPng, ogRenderer, icon192, icon512, hero768, hero1280, heroJpeg] = await Promise.all([
     readFile(new URL("../index.html", import.meta.url), "utf8"),
     readFile(new URL("../src/main.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/lib/badge-connection.js", import.meta.url), "utf8"),
     readFile(new URL("../CNAME", import.meta.url), "utf8"),
     readFile(new URL("../public/CNAME", import.meta.url), "utf8"),
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
@@ -44,6 +45,8 @@ test("ships the two mobile tools and custom-domain assets", async () => {
   assert.match(manifest, /icon-maskable-512\.png/);
   assert.match(workflow, /npm run check/);
   assert.match(workflow, /playwright install/);
+  assert.match(badgeConnection, /import \{ serial as webUsbSerial \} from "web-serial-polyfill";/);
+  assert.doesNotMatch(badgeConnection, /import\("web-serial-polyfill"\)/);
   assert.match(serviceWorker, /response\.ok && contentType\.includes\("text\/html"\)/);
   assert.match(serviceWorker, /34b-ninja-v5/);
   assert.match(ogSvg, /HACK YOUR/);

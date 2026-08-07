@@ -9,6 +9,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Properties**:
   - Native Web Serial is preferred when available.
   - Android Chromium can fall back to an experimental, unverified WebUSB-backed CDC serial implementation.
+  - The WebUSB backend is statically bundled so its chooser request remains in the connection tap's transient user-activation path.
   - The device chooser is filtered to runtime VID:PID `1d50:6198`.
   - The port opens at 1,000,000 baud, 8-N-1, without flow control.
   - The WebUSB fallback filters for the CDC control class, claims the CDC control and data interfaces, applies line coding, and asserts DTR through class control transfers before using bulk endpoints.

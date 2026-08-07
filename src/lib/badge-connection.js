@@ -1,3 +1,5 @@
+import { serial as webUsbSerial } from "web-serial-polyfill";
+
 import {
   BADGE_PRODUCT_ID,
   BADGE_VENDOR_ID,
@@ -80,8 +82,7 @@ export class BadgeConnection extends EventTarget {
       if (this.support.kind === "native") {
         this.backend = this.navigator.serial;
       } else {
-        const module = await import("web-serial-polyfill");
-        this.backend = module.serial;
+        this.backend = webUsbSerial;
       }
 
       const options = showAll ? {} : { filters: BADGE_FILTERS };
