@@ -208,7 +208,9 @@ export async function uploadBio(connection, binary, configuration, options = {})
   const { onProgress, signal, lineDelay = 200 } = options;
   const validationError = validateBioBinary(binary);
   if (validationError) throw new RangeError(validationError);
-  const pins = mapSaoSlots(configuration.slots || []);
+  const pins = mapSaoSlots(configuration.slots || [], {
+    orientation: configuration.orientation,
+  });
   const clock = parseFrequency(configuration.clock);
   const chunks = splitFixedChunks(binary, BIO_BYTES);
   if (chunks.length !== BIO_CHUNKS || chunks.some((chunk) => chunk.length !== CHUNK_DATA_BYTES)) {
