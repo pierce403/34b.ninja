@@ -40,6 +40,65 @@ function isDeterministicFailure(error) {
     || ["blocked", "rejected", "disconnected", "cancelled"].includes(error?.code);
 }
 
+async function commitFinalChunk(connection, {
+  prefix,
+  chunks,
+  timeout,
+  onProgress,
+  signal,
+  verifyMessage,
+  lineDelay,
+}) {
+  const finalIndex = chunks.length - 1;
+  const finalCommand = makeChunkCommand(prefix, finalIndex, chunks[finalIndex]);
+  const finalLabel = `${prefix} chunk ${finalIndex + 1}`;
+
+  let initialResult;
+  try {
+    initialResult = await connection.command(finalCommand, {
+      expect: ["SUCCESS", "OK"],
+      timeout,
+      echoTimeout: COMMAND_ECHO_TIMEOUT,
+      retries: 0,
+      label: finalLabel,
+    });
+  } catch (error) {
+    if (error?.code !== "timeout" || !connection.connected) throw error;
+    assertNotAborted(signal);
+  }
+  if (initialResult?.response === "SUCCESS") return initialResult;
+
+  report(onProgress, {
+    phase: "verify",
+    current: finalIndex,
+    total: chunks.length,
+    message: verifyMessage,
+  });
+
+  // A commit clears firmware staging before it prints SUCCESS. Replay the
+  // desired frames without clearing and stop at the first SUCCESS. Starting
+  // at index zero also gives the response gate a command distinct from the
+  // timed-out final frame, so a late identical echo cannot confirm the wrong
+  // write. The sweep converges from either old or freshly cleared staging.
+  const recoveryOrder = Array.from({ length: chunks.length }, (_, index) => index);
+  for (const index of recoveryOrder) {
+    assertNotAborted(signal);
+    const result = await connection.command(makeChunkCommand(prefix, index, chunks[index]), {
+      expect: ["SUCCESS", "OK"],
+      timeout,
+      echoTimeout: timeout,
+      retries: 0,
+      label: `${prefix} confirmation chunk ${index + 1}`,
+    });
+    if (result.response === "SUCCESS") return result;
+    if (lineDelay > 0) await delay(lineDelay);
+  }
+
+  const error = new Error(`Badge did not confirm ${prefix} storage.`);
+  error.code = "unconfirmed";
+  throw error;
+}
+
 async function runRestartable(connection, operation, onProgress, maximumAttempts = 2) {
   let lastError;
   for (let attempt = 0; attempt < maximumAttempts; attempt += 1) {
@@ -103,13 +162,23 @@ export async function uploadImage(connection, payload, options = {}) {
         total: IMAGE_CHUNKS,
         message: final ? "Saving image on the badge…" : `Sending image chunk ${index + 1} of ${IMAGE_CHUNKS}…`,
       });
-      const result = await connection.command(makeChunkCommand("image", index, chunks[index]), {
-        expect: final ? ["SUCCESS"] : ["OK"],
-        timeout: final ? IMAGE_COMMIT_TIMEOUT : 4_000,
-        echoTimeout: COMMAND_ECHO_TIMEOUT,
-        retries: final ? 0 : 4,
-        label: `image chunk ${index + 1}`,
-      });
+      const result = final
+        ? await commitFinalChunk(connection, {
+          prefix: "image",
+          chunks,
+          timeout: IMAGE_COMMIT_TIMEOUT,
+          onProgress,
+          signal,
+          verifyMessage: "Confirming image storage…",
+          lineDelay,
+        })
+        : await connection.command(makeChunkCommand("image", index, chunks[index]), {
+          expect: ["OK"],
+          timeout: 4_000,
+          echoTimeout: COMMAND_ECHO_TIMEOUT,
+          retries: 4,
+          label: `image chunk ${index + 1}`,
+        });
       if ((!final && result.response !== "OK") || (final && result.response !== "SUCCESS")) {
         throw new Error("Badge image state did not match this transfer.");
       }
@@ -186,13 +255,23 @@ export async function uploadBio(connection, binary, configuration, options = {})
         total: BIO_CHUNKS,
         message: final ? "Saving BIO program on the badge…" : `Sending BIO chunk ${index + 1} of ${BIO_CHUNKS}…`,
       });
-      const result = await connection.command(makeChunkCommand("bio", index, chunks[index]), {
-        expect: final ? ["SUCCESS"] : ["OK"],
-        timeout: final ? BIO_COMMIT_TIMEOUT : 3_000,
-        echoTimeout: COMMAND_ECHO_TIMEOUT,
-        retries: final ? 0 : 3,
-        label: `BIO chunk ${index + 1}`,
-      });
+      const result = final
+        ? await commitFinalChunk(connection, {
+          prefix: "bio",
+          chunks,
+          timeout: BIO_COMMIT_TIMEOUT,
+          onProgress,
+          signal,
+          verifyMessage: "Confirming BIO storage…",
+          lineDelay,
+        })
+        : await connection.command(makeChunkCommand("bio", index, chunks[index]), {
+          expect: ["OK"],
+          timeout: 3_000,
+          echoTimeout: COMMAND_ECHO_TIMEOUT,
+          retries: 3,
+          label: `BIO chunk ${index + 1}`,
+        });
       if ((!final && result.response !== "OK") || (final && result.response !== "SUCCESS")) {
         throw new Error("Badge BIO state did not match this transfer.");
       }

@@ -7,7 +7,7 @@ The site currently provides:
 - **Badge Art** — crop, pan, zoom, dither, preview, download, and send an exact 128×128 one-bit image to the badge;
 - **Nametag maker** — generate badge-sized handle cards without another graphics app;
 - **BIO / SAO Lab** — configure SAO pins and clock, upload a BIO binary, and use constrained FIFO controls; and
-- **Web Serial + WebUSB transport** — native Web Serial on desktop Chromium and an experimental WebUSB CDC fallback on Android.
+- **Web Serial + WebUSB transport** — native Web Serial on desktop Chromium and an experimental WebUSB CDC path on Android.
 
 All image processing and USB traffic stay in the browser. There is no backend, analytics, account, or cloud upload.
 

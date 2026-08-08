@@ -66,4 +66,6 @@ These instructions apply to the entire repository.
 - Negative: do not retry `bio pad`; a lost success response can lead to an all-zero commit. Send all 60 chunks instead.
 - Negative: do not treat arbitrary Xous log lines as acknowledgements.
 - Negative: do not give final image or BIO chunks the ordinary staging-chunk timeout; they persist the assembled payload before returning `SUCCESS`.
+- Positive: recover a connected final timeout without clearing by replaying desired chunks only until firmware returns `SUCCESS`; `OK` alone does not confirm persistence.
+- Negative: do not prefer native Web Serial merely because Android Chrome exposes it; Chrome 148+ has both APIs, and this composite badge uses the WebUSB CDC path on Android.
 - Negative: Android WebUSB CDC is an experimental compatibility path until its interface claims and CDC control transfers are verified on a production badge.

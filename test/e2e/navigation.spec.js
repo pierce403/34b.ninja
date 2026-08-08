@@ -116,8 +116,10 @@ test("connects through the experimental WebUSB CDC adapter", async ({ page }) =>
 
   const mock = await page.evaluate(() => window.__badgeMock);
   expect(mock.requestDeviceOptions).toEqual({
-    filters: [{ classCode: 2, vendorId: 0x1d50, productId: 0x6198 }],
+    filters: [{ vendorId: 0x1d50, productId: 0x6198 }],
   });
+  expect(mock.requestPortOptions).toBeNull();
+  expect(mock.userActivationAtRequest).toBe(true);
   expect(mock.claimedInterfaces).toEqual([2, 3]);
   expect(mock.usbInterfaces).toContainEqual({
     interfaceNumber: 2,
@@ -143,4 +145,26 @@ test("connects through the experimental WebUSB CDC adapter", async ({ page }) =>
   const disconnected = await page.evaluate(() => window.__badgeMock);
   expect(disconnected.controlTransfers.filter((entry) => entry.setup.request === 0x22).map((entry) => entry.setup.value)).toEqual([1, 0]);
   expect(disconnected.closeCount).toBe(1);
+});
+
+test("rejects a non-badge USB device before opening it", async ({ page }) => {
+  await installBadgeMock(page, {
+    transport: "usb",
+    usbIdentity: { vendorId: 0x1209, productId: 0x0001 },
+  });
+  await page.goto("/#about");
+  await page.locator("#connection-button").click();
+
+  await expect(page.locator("#connection-button")).toHaveAttribute("data-state", "disconnected");
+  await expect(page.locator("#app-status")).toHaveText("The selected USB device is not a runtime DEF CON 34 badge.");
+
+  const mock = await page.evaluate(() => window.__badgeMock);
+  expect(mock.requestDeviceOptions).toEqual({
+    filters: [{ vendorId: 0x1d50, productId: 0x6198 }],
+  });
+  expect(mock.requestPortOptions).toBeNull();
+  expect(mock.openCount).toBe(0);
+  expect(mock.claimedInterfaces).toEqual([]);
+  expect(mock.controlTransfers).toEqual([]);
+  expect(mock.commands).toEqual([]);
 });

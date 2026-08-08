@@ -1,5 +1,9 @@
-export async function installBadgeMock(page, { transport = "serial", fault = null } = {}) {
-  await page.addInitScript(({ selectedTransport, selectedFault }) => {
+export async function installBadgeMock(page, {
+  transport = "serial",
+  fault = null,
+  usbIdentity = { vendorId: 0x1d50, productId: 0x6198 },
+} = {}) {
+  await page.addInitScript(({ selectedTransport, selectedFault, selectedUsbIdentity }) => {
     const BADGE_VENDOR_ID = 0x1d50;
     const BADGE_PRODUCT_ID = 0x6198;
     const encoder = new TextEncoder();
@@ -8,6 +12,7 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
       transport: selectedTransport,
       requestPortOptions: null,
       requestDeviceOptions: null,
+      userActivationAtRequest: null,
       openOptions: [],
       commands: [],
       imageFrames: [],
@@ -23,6 +28,8 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
       transferInEndpoints: [],
       transferOutEndpoints: [],
       usbInterfaces: [],
+      imageStored: false,
+      bioStored: false,
       bioRunning: false,
     };
     globalThis.__badgeMock = state;
@@ -106,6 +113,7 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
       }
       if (command === "image clear") {
         imageSeen.clear();
+        state.imageStored = false;
         sendLines(["INFO:mock: image staging cleared", "CLEAR"]);
         return;
       }
@@ -123,22 +131,38 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
           nativeController.error(new Error("Mock cable removed"));
           return;
         }
-        if (imageSeen.size === 32 && state.fault === "delay-final-image" && !state.faultTriggered) {
+        const complete = imageSeen.size === 32;
+        if (complete && state.fault === "delay-final-image" && !state.faultTriggered) {
           state.faultTriggered = true;
+          imageSeen.clear();
+          state.imageStored = true;
           setTimeout(() => sendLines(["SUCCESS"]), 4_500);
           return;
         }
-        if (imageSeen.size === 32 && state.fault === "reject-final-image" && !state.faultTriggered) {
+        if (complete && state.fault === "drop-final-image-success" && !state.faultTriggered) {
+          state.faultTriggered = true;
+          imageSeen.clear();
+          state.imageStored = true;
+          return;
+        }
+        if (complete && state.fault === "reject-final-image" && !state.faultTriggered) {
           state.faultTriggered = true;
           sendLines(["ERR mock storage failure"]);
           return;
         }
         if (frame.index % 8 === 0) sendLines([`INFO:mock: image frame ${frame.index}`]);
-        sendLines([imageSeen.size === 32 ? "SUCCESS" : "OK"]);
+        if (complete) {
+          imageSeen.clear();
+          state.imageStored = true;
+          sendLines(["SUCCESS"]);
+        } else {
+          sendLines(["OK"]);
+        }
         return;
       }
       if (command === "bio clear") {
         bioSeen.clear();
+        state.bioStored = false;
         state.bioRunning = false;
         sendLines(["INFO:mock: BIO state cleared", "CLEAR"]);
         return;
@@ -148,7 +172,7 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
         return;
       }
       if (command === "bio reload") {
-        if (bioSeen.size !== 60) sendLines(["ERR incomplete BIO image"]);
+        if (!state.bioStored) sendLines(["ERR incomplete BIO image"]);
         else {
           state.bioRunning = true;
           sendLines(["BIO load successful"]);
@@ -176,7 +200,13 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
         bioSeen.add(frame.index);
         state.bioFrames.push(frame);
         if (frame.index % 15 === 0) sendLines([`DBG_Core2: BIO frame ${frame.index}`]);
-        sendLines([bioSeen.size === 60 ? "SUCCESS" : "OK"]);
+        if (bioSeen.size === 60) {
+          bioSeen.clear();
+          state.bioStored = true;
+          sendLines(["SUCCESS"]);
+        } else {
+          sendLines(["OK"]);
+        }
         return;
       }
       sendLines(["ERR command outside mock firmware"]);
@@ -232,8 +262,8 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
 
     class WebUsbMockDevice {
       constructor() {
-        this.vendorId = BADGE_VENDOR_ID;
-        this.productId = BADGE_PRODUCT_ID;
+        this.vendorId = selectedUsbIdentity.vendorId;
+        this.productId = selectedUsbIdentity.productId;
         this.opened = false;
         this.configuration = null;
         this.configurations = [{
@@ -311,6 +341,7 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
     const webUsb = {
       async requestDevice(options) {
         state.requestDeviceOptions = JSON.parse(JSON.stringify(options));
+        state.userActivationAtRequest = navigator.userActivation?.isActive ?? null;
         return new WebUsbMockDevice();
       },
       async getDevices() { return []; },
@@ -318,11 +349,15 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
 
     Object.defineProperty(navigator, "serial", {
       configurable: true,
-      value: selectedTransport === "serial" ? nativeSerial : undefined,
+      value: selectedTransport === "serial" || selectedTransport === "usb" ? nativeSerial : undefined,
     });
     Object.defineProperty(navigator, "usb", {
       configurable: true,
       value: selectedTransport === "usb" ? webUsb : undefined,
     });
-  }, { selectedTransport: transport, selectedFault: fault });
+    Object.defineProperty(navigator, "userAgentData", {
+      configurable: true,
+      value: { mobile: selectedTransport === "usb" },
+    });
+  }, { selectedTransport: transport, selectedFault: fault, selectedUsbIdentity: usbIdentity });
 }

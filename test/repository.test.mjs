@@ -45,10 +45,11 @@ test("ships the two mobile tools and custom-domain assets", async () => {
   assert.match(manifest, /icon-maskable-512\.png/);
   assert.match(workflow, /npm run check/);
   assert.match(workflow, /playwright install/);
-  assert.match(badgeConnection, /import \{ serial as webUsbSerial \} from "web-serial-polyfill";/);
+  assert.match(badgeConnection, /import \{ SerialPort as WebUsbSerialPort \} from "web-serial-polyfill";/);
   assert.doesNotMatch(badgeConnection, /import\("web-serial-polyfill"\)/);
+  assert.match(appMain, /register\("\/sw\.js", \{ updateViaCache: "none" \}\)/);
   assert.match(serviceWorker, /response\.ok && contentType\.includes\("text\/html"\)/);
-  assert.match(serviceWorker, /34b-ninja-v5/);
+  assert.match(serviceWorker, /34b-ninja-v6/);
   assert.match(ogSvg, /HACK YOUR/);
   assert.match(ogSvg, /FROM YOUR PHONE/);
   assert.match(ogSvg, /dc34-human-badge-v2-1280\.jpg/);

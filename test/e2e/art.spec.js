@@ -128,6 +128,29 @@ test("waits for a slow final image commit without restarting", async ({ page }) 
   expect(mock.imageFrames).toHaveLength(32);
 });
 
+test("confirms a stored image when the final SUCCESS token is lost", async ({ page }) => {
+  await installBadgeMock(page, { transport: "usb", fault: "drop-final-image-success" });
+  await page.goto("/#art");
+  await page.locator("#nametag-mode-button").click();
+
+  await page.locator("#upload-art").click();
+  await expect(page.locator("#art-progress-label")).toHaveText("Confirming image storage…", { timeout: 35_000 });
+  await expect(page.locator("#art-progress-count")).toHaveText("31 / 32 confirmed");
+  await expect(page.locator("#art-progress-count")).toHaveText("32 / 32", { timeout: 15_000 });
+  await expect(page.locator("#app-status")).toContainText("Image sent");
+
+  const mock = await page.evaluate(() => window.__badgeMock);
+  const imageCommands = mock.commands.filter((command) => command.startsWith("image ") && command !== "image clear");
+  expect(mock.commands.filter((command) => command === "image clear")).toHaveLength(1);
+  expect(mock.imageFrames).toHaveLength(64);
+  expect(mock.imageFrames.map((frame) => frame.index)).toEqual([
+    ...Array(32).keys(),
+    ...Array(32).keys(),
+  ]);
+  expect(imageCommands[32]).toBe(imageCommands[0]);
+  expect(mock.imageStored).toBe(true);
+});
+
 test("leaves a terminal progress state after a rejected image commit", async ({ page }) => {
   await installBadgeMock(page, { fault: "reject-final-image" });
   await page.goto("/#art");

@@ -151,7 +151,13 @@ function showStatus(message, kind = "info", duration = 4_200) {
 function humanError(error) {
   if (error?.name === "AbortError") return "Transfer cancelled.";
   if (error?.code === "cancelled") return "No device selected. Nothing changed.";
-  if (error?.code === "timeout") return `${error.message} Check the cable and badge mode, then try again.`;
+  if (error?.code === "timeout" && error.timeoutPhase === "response") {
+    return `${error.message} The badge echoed the command but did not confirm it. Try again; copy the Technical Log if it repeats.`;
+  }
+  if (error?.code === "timeout" && error.timeoutPhase === "echo") {
+    return `${error.message} The badge did not echo the command. Check USB data and runtime mode.`;
+  }
+  if (error?.code === "timeout") return `${error.message} Check USB data and runtime mode, then try again.`;
   return error?.message || "Badge communication failed.";
 }
 
@@ -359,7 +365,7 @@ function updateArtProgress(detail) {
   elements.artProgress.hidden = false;
   elements.artProgress.dataset.phase = detail.phase;
   elements.artProgressLabel.textContent = detail.message;
-  const confirmation = ["commit", "error"].includes(detail.phase) ? " confirmed" : "";
+  const confirmation = ["commit", "verify", "error"].includes(detail.phase) ? " confirmed" : "";
   elements.artProgressCount.textContent = `${detail.current} / ${detail.total || IMAGE_CHUNKS}${confirmation}`;
   elements.artProgressBar.max = detail.total || IMAGE_CHUNKS;
   elements.artProgressBar.value = detail.current;
@@ -384,7 +390,7 @@ async function handleArtUpload() {
         phase: "error",
         current: lastArtProgress.current,
         total: lastArtProgress.total || IMAGE_CHUNKS,
-        message: lastArtProgress.phase === "commit" && error?.code === "timeout"
+        message: ["commit", "verify"].includes(lastArtProgress.phase) && error?.code === "timeout"
           ? "Badge did not confirm image storage."
           : "Image transfer stopped.",
       });
@@ -477,7 +483,7 @@ function updateBioProgress(detail) {
   elements.bioProgress.hidden = false;
   elements.bioProgress.dataset.phase = detail.phase;
   elements.bioProgressLabel.textContent = detail.message;
-  const confirmation = ["commit", "error"].includes(detail.phase) ? " confirmed" : "";
+  const confirmation = ["commit", "verify", "error"].includes(detail.phase) ? " confirmed" : "";
   elements.bioProgressCount.textContent = `${detail.current} / ${detail.total || BIO_CHUNKS}${confirmation}`;
   elements.bioProgressBar.max = detail.total || BIO_CHUNKS;
   elements.bioProgressBar.value = detail.current;
@@ -513,7 +519,7 @@ async function handleBioUpload() {
         phase: "error",
         current: lastBioProgress.current,
         total: lastBioProgress.total || BIO_CHUNKS,
-        message: lastBioProgress.phase === "commit" && error?.code === "timeout"
+        message: ["commit", "verify"].includes(lastBioProgress.phase) && error?.code === "timeout"
           ? "Badge did not confirm BIO storage."
           : "BIO transfer stopped.",
       });
@@ -800,6 +806,10 @@ function installEvents() {
 
   connection.addEventListener("line", (event) => appendLog(event.detail.line));
   connection.addEventListener("retry", (event) => appendLog(`[34b] Retrying ${event.detail.label}, attempt ${event.detail.attempt}.`));
+  connection.addEventListener("timeout", (event) => {
+    const { label, timeoutPhase, elapsedMs } = event.detail;
+    appendLog(`[34b] ${label} timed out during ${timeoutPhase} wait after ${elapsedMs} ms.`);
+  });
   connection.addEventListener("state", (event) => {
     const { state, label } = event.detail;
     if (state === "connected") updateConnectionUi("connected", label);
@@ -828,7 +838,7 @@ function initialize() {
   validateBioUi();
   updateConnectionUi();
   if ("serviceWorker" in navigator && window.isSecureContext) {
-    navigator.serviceWorker.register("/sw.js")
+    navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
       .then(() => navigator.serviceWorker.ready)
       .then((registration) => {
         const urls = [

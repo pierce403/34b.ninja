@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BadgeConnection, badgeUsbFilters, detectBadgeSupport } from "../src/lib/badge-connection.js";
+import {
+  BadgeConnection,
+  badgeUsbFilters,
+  badgeWebUsbFilters,
+  detectBadgeSupport,
+} from "../src/lib/badge-connection.js";
 
 function makeConnection() {
   const connection = new BadgeConnection({ navigatorLike: {}, secureContext: true });
@@ -11,7 +16,11 @@ function makeConnection() {
 
 test("filters the chooser to the runtime badge and prefers Web Serial", () => {
   assert.deepEqual(badgeUsbFilters, [{ usbVendorId: 0x1d50, usbProductId: 0x6198 }]);
+  assert.deepEqual(badgeWebUsbFilters, [{ vendorId: 0x1d50, productId: 0x6198 }]);
   assert.equal(detectBadgeSupport({ serial: {}, usb: {} }).kind, "native");
+  assert.equal(detectBadgeSupport({ serial: {}, usb: {}, userAgentData: { mobile: true } }).kind, "polyfill");
+  assert.equal(detectBadgeSupport({ serial: {}, usb: {}, userAgentData: { platform: "Android" } }).kind, "polyfill");
+  assert.equal(detectBadgeSupport({ serial: {}, usb: {}, userAgent: "Mozilla/5.0 (Linux; Android 16)" }).kind, "polyfill");
   assert.equal(detectBadgeSupport({ usb: {} }).kind, "polyfill");
   assert.equal(detectBadgeSupport({}, false).kind, "insecure");
 });
@@ -46,6 +55,21 @@ test("the exact shell echo starts a fresh response deadline", async () => {
   connection.consumeLine("CLEAR");
 
   assert.equal((await response).response, "CLEAR");
+});
+
+test("records whether a command timed out before or after its echo", async () => {
+  const beforeEcho = makeConnection();
+  const echoError = await beforeEcho.waitForResponse("image clear", ["CLEAR"], 10, "image clear", 5)
+    .then(() => null, (error) => error);
+  assert.equal(echoError.code, "timeout");
+  assert.equal(echoError.timeoutPhase, "echo");
+
+  const afterEcho = makeConnection();
+  const response = afterEcho.waitForResponse("image clear", ["CLEAR"], 5, "image clear", 20);
+  afterEcho.consumeLine("[console] image clear");
+  const responseError = await response.then(() => null, (error) => error);
+  assert.equal(responseError.code, "timeout");
+  assert.equal(responseError.timeoutPhase, "response");
 });
 
 test("does not accept a late final token for a non-final chunk", async () => {

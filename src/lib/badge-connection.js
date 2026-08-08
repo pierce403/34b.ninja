@@ -1,4 +1,4 @@
-import { serial as webUsbSerial } from "web-serial-polyfill";
+import { SerialPort as WebUsbSerialPort } from "web-serial-polyfill";
 
 import {
   BADGE_PRODUCT_ID,
@@ -9,20 +9,38 @@ import {
 } from "./protocol.js";
 
 const BADGE_FILTERS = [{ usbVendorId: BADGE_VENDOR_ID, usbProductId: BADGE_PRODUCT_ID }];
+const BADGE_WEBUSB_FILTERS = [{ vendorId: BADGE_VENDOR_ID, productId: BADGE_PRODUCT_ID }];
 
 export class BadgeCommandError extends Error {
-  constructor(message, { code = "command", command = "", lines = [] } = {}) {
+  constructor(message, {
+    code = "command",
+    command = "",
+    lines = [],
+    timeoutPhase = null,
+    elapsedMs = null,
+  } = {}) {
     super(message);
     this.name = "BadgeCommandError";
     this.code = code;
     this.command = command;
     this.lines = lines;
+    this.timeoutPhase = timeoutPhase;
+    this.elapsedMs = elapsedMs;
   }
 }
 
 export function detectBadgeSupport(navigatorLike, secureContext = true) {
   if (!secureContext) {
     return { supported: false, kind: "insecure", label: "HTTPS required" };
+  }
+  const mobile = navigatorLike?.userAgentData?.mobile === true
+    || navigatorLike?.userAgentData?.platform === "Android"
+    || /Android/i.test(navigatorLike?.userAgent || "");
+  // Chrome 148 added native Web Serial on Android, but its serial chooser can
+  // exclude this composite HID + CDC badge. Keep Android on the WebUSB CDC
+  // adapter; desktop Chromium still gets native Web Serial first.
+  if (mobile && navigatorLike?.usb) {
+    return { supported: true, kind: "polyfill", label: "WebUSB CDC" };
   }
   if (navigatorLike?.serial) {
     return { supported: true, kind: "native", label: "Web Serial" };
@@ -66,7 +84,7 @@ export class BadgeConnection extends EventTarget {
     this.dispatchEvent(new CustomEvent(type, { detail }));
   }
 
-  async connect({ showAll = false } = {}) {
+  async connect() {
     if (this.connected) return this.info;
     if (!this.support.supported) {
       throw new BadgeCommandError(
@@ -81,12 +99,20 @@ export class BadgeConnection extends EventTarget {
     try {
       if (this.support.kind === "native") {
         this.backend = this.navigator.serial;
+        this.port = await this.backend.requestPort({ filters: BADGE_FILTERS });
       } else {
-        this.backend = webUsbSerial;
+        this.backend = this.navigator.usb;
+        const device = await this.backend.requestDevice({ filters: BADGE_WEBUSB_FILTERS });
+        if (device.vendorId !== BADGE_VENDOR_ID || device.productId !== BADGE_PRODUCT_ID) {
+          throw new BadgeCommandError("The selected USB device is not a runtime DEF CON 34 badge.", {
+            code: "wrong-device",
+          });
+        }
+        this.port = new WebUsbSerialPort(device, {
+          usbControlInterfaceClass: 0x02,
+          usbTransferInterfaceClass: 0x0a,
+        });
       }
-
-      const options = showAll ? {} : { filters: BADGE_FILTERS };
-      this.port = await this.backend.requestPort(options);
       const usb = this.port.getInfo?.() || {};
       await this.port.open({
         baudRate: BAUD_RATE,
@@ -117,6 +143,7 @@ export class BadgeConnection extends EventTarget {
       if (error?.name === "NotFoundError") {
         throw new BadgeCommandError("No badge was selected.", { code: "cancelled" });
       }
+      if (error instanceof BadgeCommandError) throw error;
       throw new BadgeCommandError(error?.message || "Could not open the badge.", { code: "connect" });
     }
   }
@@ -175,6 +202,7 @@ export class BadgeConnection extends EventTarget {
         const pending = this.pending;
         if (!pending.echoSeen) {
           pending.echoSeen = true;
+          pending.echoAt = Date.now();
           pending.lines = [];
           this.armPendingTimeout(pending, pending.responseTimeout);
         }
@@ -225,11 +253,16 @@ export class BadgeConnection extends EventTarget {
     pending.timer = setTimeout(() => {
       if (this.pending !== pending) return;
       const lines = [...pending.lines];
+      const timeoutPhase = pending.echoSeen ? "response" : "echo";
+      const elapsedMs = Date.now() - (pending.echoAt || pending.startedAt);
       this.pending = null;
+      this.emit("timeout", { label: pending.label, timeoutPhase, elapsedMs });
       pending.reject(new BadgeCommandError(`Timed out waiting for ${pending.label}.`, {
         code: "timeout",
         command: pending.command,
         lines,
+        timeoutPhase,
+        elapsedMs,
       }));
     }, timeout);
   }
@@ -244,6 +277,8 @@ export class BadgeConnection extends EventTarget {
         lines: [],
         echoSeen: false,
         responseTimeout: timeout,
+        startedAt: Date.now(),
+        echoAt: null,
         timer: null,
         resolve,
         reject,
@@ -351,3 +386,4 @@ export class BadgeConnection extends EventTarget {
 }
 
 export const badgeUsbFilters = BADGE_FILTERS;
+export const badgeWebUsbFilters = BADGE_WEBUSB_FILTERS;

@@ -6,18 +6,19 @@ This is the durable ledger behind checked criteria in `FEATURES.md`. Source insp
 
 Most recent local run, 2026-08-08:
 
-- `npm run check` passed: 24 Node tests, the Vite production build, and 9 Playwright tests in Chromium.
+- `npm run check` passed: 29 Node tests, the Vite production build, and 11 Playwright tests in Chromium.
 - The run used Chromium 149 through the repository's `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` override because the lockfile-pinned Playwright browser was not installed locally.
-- `test/badge-connection.test.mjs` covers the runtime chooser filter, native transport preference, insecure-state detection, exact shell-echo response gate, fresh post-echo response deadline, and whole-operation serialization.
+- `test/badge-connection.test.mjs` covers native and WebUSB runtime filters, desktop native preference, Android WebUSB preference when both APIs exist, insecure-state detection, exact shell-echo response gate, fresh post-echo response deadline, echo-versus-response timeout diagnostics, and whole-operation serialization.
 - `test/protocol.test.mjs` covers CRC32, canonical 70-byte chunk vectors, BIO zero-padding to 60 chunks, SAO mapping, clock bounds, representative allowlist acceptance/rejection, and constrained FIFO3 parsing.
 - `test/image-pipeline.test.mjs` covers logical corner orientation, black/white polarity, pinned single-pixel Base64/CRC vectors, threshold conversion, inversion, deterministic 5×7 nametag glyphs, and the empty OLED state.
-- `test/transfers.test.mjs` covers image clear plus 32 chunks and BIO clear/configure plus 60 chunks/reload, including exact `OK`/`SUCCESS` state matching, 20-second final persistence deadlines, the absence of `bio pad`, a full clear-and-restart after ambiguous image completion, and no retry after explicit firmware rejection.
+- `test/transfers.test.mjs` covers image clear plus 32 chunks and BIO clear/configure plus 60 chunks/reload, including exact `OK`/`SUCCESS` state matching, 20-second final persistence deadlines, immediate recovery from a final `OK`, no-clear confirmation after lost final replies, residual-staging cleanup, one clear-first fallback, the absence of `bio pad`, and no retry after explicit firmware rejection.
 - `test/repository.test.mjs` covers the two tool surfaces, PWA/custom-domain assets, deployment gate, and recurse.bot document split.
+- The service-worker cache generation is `v6`; registration bypasses the HTTP cache for worker updates so mobile clients can replace older app-shell state after reloading.
 - `test/repository.test.mjs` also locks the static `web-serial-polyfill` import and rejects restoring the dynamic import inside the connection path.
-- `test/e2e/art.spec.js` decodes the faithful badge JPEG, changes crop/zoom/rotation/dither state, validates a downloaded 128×128 PNG, uploads 32 CRC-valid frames, verifies chooser/open options, and confirms chunk payloads are redacted from the UI log. It also covers the no-file nametag flow, keyboard tab behavior, a virtual cable loss followed by a fresh clear-first reconnect transfer, a WebUSB-backed 4.5-second final storage confirmation without restart, and a persistent terminal progress state after explicit rejection.
+- `test/e2e/art.spec.js` decodes the faithful badge JPEG, changes crop/zoom/rotation/dither state, validates a downloaded 128×128 PNG, uploads CRC-valid frames, verifies chooser/open options, and confirms chunk payloads are redacted from the UI log. It also covers the no-file nametag flow, keyboard tab behavior, a virtual cable loss followed by a fresh clear-first reconnect transfer, a WebUSB-backed 4.5-second final storage confirmation, a dropped final `SUCCESS` recovered without clearing, and a persistent terminal progress state after explicit rejection.
 - `test/e2e/bio.spec.js` uploads 65 bytes padded to 3,840, validates the clear/ready/pin/clock/60-frame/reload sequence, proves `bio pad` is absent, parses FIFO3 touch telemetry, and confirms disconnect disables FIFO controls.
-- `test/e2e/navigation.spec.js` checks Art/BIO/About at 320, 390, 768, and 1280 CSS pixels, the photo-derived theme tokens and v2 hero asset, minimum mobile targets, concise headings, complete social metadata, the 1200×630 Open Graph PNG, and a WebUSB CDC device with polyfill-relevant descriptors, class requests, and bulk endpoints.
-- `test/e2e/support/badge-mock.js` acts as the virtual stock console. It validates CRC32 and frame indices, emits CRLF, fragments exact shell echoes, injects stale acknowledgements and Xous logs, and models both native streams and WebUSB CDC.
+- `test/e2e/navigation.spec.js` checks Art/BIO/About at 320, 390, 768, and 1280 CSS pixels, the photo-derived theme tokens and v2 hero asset, minimum mobile targets, concise headings, complete social metadata, the 1200×630 Open Graph PNG, and an Android-like browser exposing both APIs that still uses a tap-activated, VID/PID-only WebUSB chooser before CDC class requests and bulk traffic. It also rejects an unexpected USB identity before opening or claiming it.
+- `test/e2e/support/badge-mock.js` acts as the virtual stock console. It validates CRC32 and frame indices, emits CRLF, fragments exact shell echoes, injects stale acknowledgements and Xous logs, clears staging after persistence like the pinned firmware, and models both native streams and WebUSB CDC.
 
 The current automated suite does not validate the real Chrome chooser, OS serial/USB drivers, service-worker lifecycle, touch gestures, cables, electrical behavior, or production badge firmware. Those remain manual hardware checks below.
 
@@ -33,7 +34,7 @@ The copy and typography pass removed outlined headings, replaced platform-font O
 
 ## Source-inspection anchors
 
-- Secure-context support detection, native-first selection, static activation-preserving WebUSB polyfill import, runtime VID/PID filter, experimental CDC fallback, 1,000,000-baud open options, one-command queue, exact response matching, and disconnect cleanup: `src/lib/badge-connection.js`.
+- Secure-context support detection, desktop-native/Android-WebUSB selection, static activation-preserving WebUSB polyfill import, exact runtime VID/PID filters, CDC adapter, 1,000,000-baud open options, one-command queue, exact response matching, and disconnect cleanup: `src/lib/badge-connection.js`.
 - Exact command allowlist, payload constants, chunk constructor, clock/pin parsing, and FIFO3 log filter: `src/lib/protocol.js`.
 - Timeouts, per-command retries, full restart policy, final-chunk handling, and 32/60-chunk flows: `src/lib/transfers.js`.
 - 30 MiB/MIME gate, post-decode 80-megapixel rejection, and 4,096-pixel retained-source bound: `src/main.js` (`decodeImageFile`).
@@ -46,7 +47,7 @@ No complete production-badge transfer is recorded yet. Keep the corresponding `F
 | Check | Target | Status | Evidence |
 | --- | --- | --- | --- |
 | Native connection and image upload | Desktop Chromium + production badge | pending | — |
-| Experimental CDC connection and image upload | Android Chromium + USB-C OTG + production badge | partial 2026-08-08 | Field report reached the WebUSB-backed serial chooser, connected, and showed 31 / 32 while sending the final chunk. Without the technical log, whether chunk 32 was written, echoed, committed, or timed out is unknown; browser/OS versions, cable, and Xous version also remain to be recorded. |
+| Experimental CDC connection and image upload | Android Chromium + USB-C OTG + production badge | partial 2026-08-08 | Repeated Android reports showed native Chrome's “serial port” chooser with no compatible device. Chrome 148+ exposes both APIs and the app had preferred native Serial; source now routes Android to a tap-activated, VID/PID-only WebUSB chooser, but that fix still needs production-phone verification. Separate connected runs reached 31 / 32 and later showed an explicit chunk-32 timeout; without the new technical log, echo phase, response phase, and commit outcome remain unknown. Browser/OS versions, cable, and Xous version also remain to be recorded. |
 | Image orientation fixture | Six logical corner pixels on OLED | pending | — |
 | Touch crop/pinch | Physical Android phone | pending | — |
 | BIO install/reload | Known-safe binary built from pinned source + production badge | pending | — |

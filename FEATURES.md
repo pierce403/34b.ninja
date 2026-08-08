@@ -7,19 +7,19 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Stability**: in-progress
 - **Description**: Connect a production DEF CON 34 badge from a secure Chromium browser without a local helper application.
 - **Properties**:
-  - Native Web Serial is preferred when available.
-  - Android Chromium can fall back to an experimental, unverified WebUSB-backed CDC serial implementation.
+  - Desktop Chromium prefers native Web Serial.
+  - Android Chromium uses the experimental WebUSB-backed CDC serial implementation even when Chrome also exposes native Web Serial.
   - The WebUSB backend is statically bundled so its chooser request remains in the connection tap's transient user-activation path.
   - The device chooser is filtered to runtime VID:PID `1d50:6198`.
   - The port opens at 1,000,000 baud, 8-N-1, without flow control.
-  - The WebUSB fallback filters for the CDC control class, claims the CDC control and data interfaces, applies line coding, and asserts DTR through class control transfers before using bulk endpoints.
+  - The WebUSB chooser uses exact runtime VID/PID without a redundant class filter; the adapter then requires and claims CDC control and data interfaces, applies line coding, and asserts DTR through class control transfers before using bulk endpoints.
   - Whole badge operations and their commands are serialized. A command response is eligible only after the shell emits its exact `[console] <command>` echo; unrelated Xous logs are not acknowledgements.
   - Disconnects cancel transfers and never silently resume partial state.
 - **Dependencies**: `src/lib/badge-connection.js`, `src/lib/protocol.js`
 - **Test Criteria**:
-  - [x] Source inspection confirms the secure-context gate, desktop-first selection, runtime VID/PID filter, and CDC fallback construction.
-  - [x] Unit tests verify the runtime filter, native preference, command/operation serialization, exact-echo response gate, and representative allowed and blocked command forms.
-  - [x] Playwright emulates native Web Serial and the polyfill-relevant WebUSB CDC descriptors, including chooser filters, 1 Mbps 8-N-1 open options, claimed interfaces, line coding, DTR, bulk endpoints, fragmented echoes, and interleaved logs.
+  - [x] Source inspection confirms the secure-context gate, desktop-native/Android-WebUSB selection, exact runtime VID/PID filters, and CDC adapter construction.
+  - [x] Unit tests verify both runtime filters, desktop native preference, Android WebUSB preference, command/operation serialization, exact-echo response gate, and representative allowed and blocked command forms.
+  - [x] Playwright emulates Android Chrome with both APIs present and proves the tap reaches a VID/PID-only WebUSB chooser, then validates 1 Mbps 8-N-1 open options, claimed CDC interfaces, line coding, DTR, bulk endpoints, fragmented echoes, and interleaved logs.
   - [x] Playwright removes the virtual cable during an image frame, verifies the interrupted transfer stops, reconnects with a fresh port, and requires a new clear-first transfer from chunk zero.
   - [ ] Automated tests exhaustively cover the support matrix, USB filter, and every allowlist boundary.
   - [ ] Native Web Serial connects to a production badge on desktop Chromium.
@@ -37,7 +37,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - The preview is an unmirrored 128×128 one-bit representation of the displayed result.
   - Packing matches the official uploader's horizontal flip, word order, bit polarity, and big-endian serialization.
   - Upload begins with `image clear`, then sends 32 indexed, CRC-protected chunks with retry and progress.
-  - Ordinary chunks use short retryable response windows. The final persistent write gets a 20-second post-echo deadline and is never resent in place.
+  - Ordinary chunks use short retryable response windows. The final persistent write gets a 20-second post-echo deadline. A connected timeout triggers one no-clear confirmation pass that stops only on firmware `SUCCESS`.
   - A generated nametag can be edited and sent without an external image tool.
 - **Dependencies**: `src/lib/image-pipeline.js`, `src/lib/transfers.js`, `src/main.js`
 - **Test Criteria**:
@@ -45,7 +45,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - [x] CRC and Base64 output match official all-white, all-black, and single-pixel vectors.
   - [x] The preview can be downloaded locally as a 128×128 PNG.
   - [x] Playwright decodes the faithful hero JPEG as a user upload, exercises keyboard crop/zoom/rotate and dithering controls, downloads the result, and sends 32 valid ordered frames through the serial emulator.
-  - [x] Playwright delays final persistence confirmation beyond the former four-second window and verifies one clear, 32 frames, no restart, and an explicit terminal error state on rejection.
+  - [x] Playwright delays final persistence confirmation beyond the former four-second window, drops a final `SUCCESS` and verifies no-clear recovery, and preserves an explicit terminal error state on rejection.
   - [ ] A production badge accepts an uploaded image and displays the same orientation as the preview.
   - [ ] Touch crop and pinch zoom are verified on a physical Android phone.
 
@@ -59,7 +59,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - Enforce clock values from 25 kHz through 350 MHz.
   - Disclose that replacement stops, clears, persists, and runs BIO code.
   - Clear prior code and partial state, send all 60 locally padded chunks, then reload.
-  - The final persistent write gets a 20-second post-echo deadline and is never resent in place.
+  - The final persistent write gets a 20-second post-echo deadline. A connected timeout uses the same bounded no-clear confirmation pass as image transfer and requires a firmware `SUCCESS` before reload.
   - Firmware's `0xF00` receiver buffer is authoritative: 3,840 bytes and 60 chunks supersede stale 4,096-byte/64-chunk prose in the Python uploader.
   - Never send `bio pad` and never expose arbitrary console commands.
   - Provide constrained single-value FIFO3 TX and single-sample RX controls.
