@@ -19,5 +19,6 @@ Keep this index compact. Durable details live in `notes/`; session chatter does 
 - Android WebUSB CDC remains experimental until it is exercised with a production badge; source compatibility is not hardware evidence.
 - Production badge testing is required before USB features are called stable.
 - Playwright's serial and WebUSB firmware doubles are release gates for browser logic, framing, and UI state; they are not evidence about Chrome choosers, OS drivers, cables, or production hardware.
+- Command echo detection has a short deadline; final image and BIO persistence get a separate 20-second response deadline after the exact echo. Do not infer final-write latency from ordinary chunk RTTs.
 - Image files are capped at 30 MiB and rejected above 80 megapixels; retained editor sources are downscaled to a 4,096-pixel longest edge. The initial browser decode still occurs before the dimension check, so compressed size alone is not a memory bound.
 - No backend, accounts, telemetry, arbitrary terminal, firmware updater, or FIDO vendor commands.

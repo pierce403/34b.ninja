@@ -123,6 +123,16 @@ export async function installBadgeMock(page, { transport = "serial", fault = nul
           nativeController.error(new Error("Mock cable removed"));
           return;
         }
+        if (imageSeen.size === 32 && state.fault === "delay-final-image" && !state.faultTriggered) {
+          state.faultTriggered = true;
+          setTimeout(() => sendLines(["SUCCESS"]), 4_500);
+          return;
+        }
+        if (imageSeen.size === 32 && state.fault === "reject-final-image" && !state.faultTriggered) {
+          state.faultTriggered = true;
+          sendLines(["ERR mock storage failure"]);
+          return;
+        }
         if (frame.index % 8 === 0) sendLines([`INFO:mock: image frame ${frame.index}`]);
         sendLines([imageSeen.size === 32 ? "SUCCESS" : "OK"]);
         return;

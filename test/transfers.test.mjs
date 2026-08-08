@@ -8,11 +8,13 @@ class FakeConnection {
     this.kind = kind;
     this.connected = true;
     this.commands = [];
+    this.commandCalls = [];
     this.chunkCount = 0;
   }
 
-  async command(command) {
+  async command(command, options = {}) {
     this.commands.push(command);
+    this.commandCalls.push({ command, options });
     if (command.endsWith(" clear")) return { response: "CLEAR", lines: ["CLEAR"] };
     if (command === "bio ready" || command.startsWith("bio pin ") || command.startsWith("bio clk ")) {
       return { response: "OK", lines: ["OK"] };
@@ -40,6 +42,29 @@ test("image transfer clears and sends exactly 32 chunks", async () => {
   assert.equal(progress.at(-1).phase, "complete");
 });
 
+test("image transfer gives persistent storage its own final deadline", async () => {
+  const connection = new FakeConnection("image");
+  const progress = [];
+  await uploadImage(connection, new Uint8Array(2048), {
+    lineDelay: 0,
+    onProgress: (detail) => progress.push(detail),
+  });
+
+  const chunks = connection.commandCalls.filter(({ command }) => command.startsWith("image ") && command !== "image clear");
+  assert.deepEqual(chunks[0].options.expect, ["OK"]);
+  assert.equal(chunks[0].options.timeout, 4_000);
+  assert.deepEqual(chunks.at(-1).options.expect, ["SUCCESS"]);
+  assert.equal(chunks.at(-1).options.timeout, 20_000);
+  assert.equal(chunks.at(-1).options.echoTimeout, 4_000);
+  assert.equal(chunks.at(-1).options.retries, 0);
+  assert.deepEqual(progress.find(({ phase }) => phase === "commit"), {
+    phase: "commit",
+    current: 31,
+    total: 32,
+    message: "Saving image on the badge…",
+  });
+});
+
 test("BIO transfer clears, configures, sends all 60 chunks, and never pads", async () => {
   const connection = new FakeConnection("bio");
   await uploadBio(connection, Uint8Array.of(1, 2, 3, 4), {
@@ -55,6 +80,12 @@ test("BIO transfer clears, configures, sends all 60 chunks, and never pads", asy
   assert.equal(connection.chunkCount, 60);
   assert.equal(connection.commands.at(-1), "bio reload");
   assert.equal(connection.commands.includes("bio pad"), false);
+  const chunkCalls = connection.commandCalls.filter(({ command }) => command.startsWith("bio ") && /^[A-Za-z0-9+/]{94}==$/.test(command.slice(4)));
+  assert.deepEqual(chunkCalls[0].options.expect, ["OK"]);
+  assert.deepEqual(chunkCalls.at(-1).options.expect, ["SUCCESS"]);
+  assert.equal(chunkCalls.at(-1).options.timeout, 20_000);
+  assert.equal(chunkCalls.at(-1).options.echoTimeout, 4_000);
+  assert.equal(chunkCalls.at(-1).options.retries, 0);
 });
 
 test("ambiguous image completion clears and restarts the whole transfer", async () => {

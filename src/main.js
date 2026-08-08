@@ -115,6 +115,8 @@ let bioRunning = false;
 let biosaoRecipe = false;
 let statusTimer = null;
 let renderQueued = false;
+let lastArtProgress = { phase: "idle", current: 0, total: IMAGE_CHUNKS };
+let lastBioProgress = { phase: "idle", current: 0, total: BIO_CHUNKS };
 
 function setRoute(rawRoute) {
   const route = ["art", "bio", "about"].includes(rawRoute) ? rawRoute : "art";
@@ -353,15 +355,19 @@ async function handleImageFile(file) {
 }
 
 function updateArtProgress(detail) {
+  lastArtProgress = detail;
   elements.artProgress.hidden = false;
+  elements.artProgress.dataset.phase = detail.phase;
   elements.artProgressLabel.textContent = detail.message;
-  elements.artProgressCount.textContent = `${detail.current} / ${detail.total || IMAGE_CHUNKS}`;
+  const confirmation = ["commit", "error"].includes(detail.phase) ? " confirmed" : "";
+  elements.artProgressCount.textContent = `${detail.current} / ${detail.total || IMAGE_CHUNKS}${confirmation}`;
   elements.artProgressBar.max = detail.total || IMAGE_CHUNKS;
   elements.artProgressBar.value = detail.current;
 }
 
 async function handleArtUpload() {
   if (!artIsReady() || !currentBitmap || artBusy || badgeBusy) return;
+  let transferStarted = false;
   badgeBusy = true;
   artBusy = true;
   updateConnectionUi("busy", connection.connected ? "Sending art…" : "Choose badge…");
@@ -369,9 +375,20 @@ async function handleArtUpload() {
   try {
     await ensureConnected();
     const payload = packBitmap(currentBitmap);
+    transferStarted = true;
     await uploadImage(connection, payload, { onProgress: updateArtProgress });
     showStatus("Image sent.", "success", 6_000);
   } catch (error) {
+    if (transferStarted) {
+      updateArtProgress({
+        phase: "error",
+        current: lastArtProgress.current,
+        total: lastArtProgress.total || IMAGE_CHUNKS,
+        message: lastArtProgress.phase === "commit" && error?.code === "timeout"
+          ? "Badge did not confirm image storage."
+          : "Image transfer stopped.",
+      });
+    }
     showStatus(humanError(error), "error", 7_000);
   } finally {
     artBusy = false;
@@ -456,9 +473,12 @@ async function loadBioFile(file) {
 }
 
 function updateBioProgress(detail) {
+  lastBioProgress = detail;
   elements.bioProgress.hidden = false;
+  elements.bioProgress.dataset.phase = detail.phase;
   elements.bioProgressLabel.textContent = detail.message;
-  elements.bioProgressCount.textContent = `${detail.current} / ${detail.total || BIO_CHUNKS}`;
+  const confirmation = ["commit", "error"].includes(detail.phase) ? " confirmed" : "";
+  elements.bioProgressCount.textContent = `${detail.current} / ${detail.total || BIO_CHUNKS}${confirmation}`;
   elements.bioProgressBar.max = detail.total || BIO_CHUNKS;
   elements.bioProgressBar.value = detail.current;
 }
@@ -467,6 +487,7 @@ async function handleBioUpload() {
   if (badgeBusy) return;
   const validity = validateBioUi();
   if (validity.binaryError || !validity.clockValid || bioBusy) return;
+  let transferStarted = false;
   badgeBusy = true;
   bioBusy = true;
   updateConnectionUi("busy", connection.connected ? "Sending BIO…" : "Choose badge…");
@@ -476,12 +497,27 @@ async function handleBioUpload() {
     const result = await uploadBio(connection, bioBinary, {
       slots: selectedSaoSlots(),
       clock: elements.bioClock.value,
-    }, { onProgress: updateBioProgress });
+    }, {
+      onProgress: (detail) => {
+        transferStarted = true;
+        updateBioProgress(detail);
+      },
+    });
     bioRunning = true;
     appendLog(`[34b] BIO active: ${result.bytes}/${BIO_BYTES} bytes, pins ${result.pins.join(", ") || "none"}, ${result.clock} Hz.`);
     showStatus("BIO program running.", "success", 6_000);
   } catch (error) {
     bioRunning = false;
+    if (transferStarted) {
+      updateBioProgress({
+        phase: "error",
+        current: lastBioProgress.current,
+        total: lastBioProgress.total || BIO_CHUNKS,
+        message: lastBioProgress.phase === "commit" && error?.code === "timeout"
+          ? "Badge did not confirm BIO storage."
+          : "BIO transfer stopped.",
+      });
+    }
     showStatus(humanError(error), "error", 8_000);
   } finally {
     bioBusy = false;

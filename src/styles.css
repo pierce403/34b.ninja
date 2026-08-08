@@ -915,6 +915,16 @@ input[type="range"] {
   background: rgb(86 235 241 / 6%);
 }
 
+.transfer-card[data-phase="commit"] {
+  border-color: rgb(240 122 62 / 55%);
+  background: rgb(240 122 62 / 7%);
+}
+
+.transfer-card[data-phase="error"] {
+  border-color: rgb(255 113 100 / 58%);
+  background: rgb(255 113 100 / 7%);
+}
+
 .transfer-card > div {
   display: flex;
   justify-content: space-between;

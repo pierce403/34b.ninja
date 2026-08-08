@@ -111,3 +111,31 @@ test("starts a fresh clear-first transfer after a cable loss", async ({ page }) 
   expect(mock.commands.filter((command) => command === "image clear")).toHaveLength(2);
   expect(mock.imageFrames.slice(-32).map((frame) => frame.index)).toEqual([...Array(32).keys()]);
 });
+
+test("waits for a slow final image commit without restarting", async ({ page }) => {
+  await installBadgeMock(page, { transport: "usb", fault: "delay-final-image" });
+  await page.goto("/#art");
+  await page.locator("#nametag-mode-button").click();
+
+  await page.locator("#upload-art").click();
+  await expect(page.locator("#art-progress-label")).toHaveText("Saving image on the badge…", { timeout: 15_000 });
+  await expect(page.locator("#art-progress-count")).toHaveText("31 / 32 confirmed");
+  await expect(page.locator("#art-progress-count")).toHaveText("32 / 32", { timeout: 10_000 });
+  await expect(page.locator("#app-status")).toContainText("Image sent");
+
+  const mock = await page.evaluate(() => window.__badgeMock);
+  expect(mock.commands.filter((command) => command === "image clear")).toHaveLength(1);
+  expect(mock.imageFrames).toHaveLength(32);
+});
+
+test("leaves a terminal progress state after a rejected image commit", async ({ page }) => {
+  await installBadgeMock(page, { fault: "reject-final-image" });
+  await page.goto("/#art");
+  await page.locator("#nametag-mode-button").click();
+
+  await page.locator("#upload-art").click();
+  await expect(page.locator("#art-progress")).toHaveAttribute("data-phase", "error", { timeout: 15_000 });
+  await expect(page.locator("#art-progress-label")).toHaveText("Image transfer stopped.");
+  await expect(page.locator("#art-progress-count")).toHaveText("31 / 32 confirmed");
+  await expect(page.locator("#app-status")).toContainText("Badge rejected image chunk 32");
+});

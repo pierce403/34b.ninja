@@ -36,6 +36,34 @@ test("does not accept an acknowledgement before the exact shell echo", async () 
   assert.deepEqual(result.lines, ["INFO:unrelated log line", "CLEAR"]);
 });
 
+test("the exact shell echo starts a fresh response deadline", async () => {
+  const connection = makeConnection();
+  const response = connection.waitForResponse("image clear", ["CLEAR"], 1_000, "image clear", 1_000);
+  const echoTimer = connection.pending.timer;
+
+  connection.consumeLine("[console] image clear");
+  assert.notEqual(connection.pending.timer, echoTimer);
+  connection.consumeLine("CLEAR");
+
+  assert.equal((await response).response, "CLEAR");
+});
+
+test("does not accept a late final token for a non-final chunk", async () => {
+  const command = `image ${"A".repeat(94)}==`;
+  const connection = makeConnection();
+  const response = connection.waitForResponse(command, ["OK"], 1_000, "image chunk 1");
+  let settled = false;
+  response.finally(() => { settled = true; });
+
+  connection.consumeLine(`[console] ${command}`);
+  connection.consumeLine("SUCCESS");
+  await Promise.resolve();
+  assert.equal(settled, false);
+
+  connection.consumeLine("OK");
+  assert.equal((await response).response, "OK");
+});
+
 test("serializes whole badge operations", async () => {
   const connection = makeConnection();
   const order = [];

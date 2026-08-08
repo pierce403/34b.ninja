@@ -65,4 +65,5 @@ These instructions apply to the entire repository.
 - Negative: do not copy the official uploader's stale 4,096-byte/64-chunk BIO comments; firmware capacity is `0xF00`, or 3,840 bytes and 60 chunks.
 - Negative: do not retry `bio pad`; a lost success response can lead to an all-zero commit. Send all 60 chunks instead.
 - Negative: do not treat arbitrary Xous log lines as acknowledgements.
+- Negative: do not give final image or BIO chunks the ordinary staging-chunk timeout; they persist the assembled payload before returning `SUCCESS`.
 - Negative: Android WebUSB CDC is an experimental compatibility path until its interface claims and CDC control transfers are verified on a production badge.

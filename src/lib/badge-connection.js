@@ -172,8 +172,12 @@ export class BadgeConnection extends EventTarget {
     if (!line) return;
     if (line.startsWith("[console]")) {
       if (this.pending && line === `[console] ${this.pending.command}`) {
-        this.pending.echoSeen = true;
-        this.pending.lines = [];
+        const pending = this.pending;
+        if (!pending.echoSeen) {
+          pending.echoSeen = true;
+          pending.lines = [];
+          this.armPendingTimeout(pending, pending.responseTimeout);
+        }
       }
       return;
     }
@@ -216,29 +220,36 @@ export class BadgeConnection extends EventTarget {
     if (this.pending) this.finishPending("reject", error);
   }
 
-  waitForResponse(command, expect, timeout, label) {
+  armPendingTimeout(pending, timeout) {
+    clearTimeout(pending.timer);
+    pending.timer = setTimeout(() => {
+      if (this.pending !== pending) return;
+      const lines = [...pending.lines];
+      this.pending = null;
+      pending.reject(new BadgeCommandError(`Timed out waiting for ${pending.label}.`, {
+        code: "timeout",
+        command: pending.command,
+        lines,
+      }));
+    }, timeout);
+  }
+
+  waitForResponse(command, expect, timeout, label, echoTimeout = timeout) {
     if (this.pending) throw new BadgeCommandError("Another badge command is already active.", { code: "busy" });
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        if (!this.pending) return;
-        const lines = [...this.pending.lines];
-        this.pending = null;
-        reject(new BadgeCommandError(`Timed out waiting for ${label}.`, {
-          code: "timeout",
-          command,
-          lines,
-        }));
-      }, timeout);
-      this.pending = {
+      const pending = {
         command,
         expect: Array.isArray(expect) ? expect : expect,
         label,
         lines: [],
         echoSeen: false,
-        timer,
+        responseTimeout: timeout,
+        timer: null,
         resolve,
         reject,
       };
+      this.pending = pending;
+      this.armPendingTimeout(pending, echoTimeout);
     });
   }
 
@@ -276,6 +287,7 @@ export class BadgeConnection extends EventTarget {
     const {
       expect = ["OK"],
       timeout = 4_000,
+      echoTimeout = Math.min(timeout, 4_000),
       retries = 0,
       retryDelay = 500,
       label = command.split(" ", 2).join(" "),
@@ -284,7 +296,11 @@ export class BadgeConnection extends EventTarget {
 
     let lastError;
     for (let attempt = 0; attempt <= retries; attempt += 1) {
-      const response = this.waitForResponse(command, expect, timeout, label);
+      const response = this.waitForResponse(command, expect, timeout, label, echoTimeout);
+      // The matcher can time out while a WebUSB write is pending, so attach a
+      // handler immediately. Still await the write before doing anything else:
+      // abandoned writes must never flush behind a later retry or clear.
+      response.catch(() => undefined);
       try {
         await this.writer.write(new TextEncoder().encode(`${command}\n`));
         const result = await response;

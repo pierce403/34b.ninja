@@ -37,6 +37,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - The preview is an unmirrored 128×128 one-bit representation of the displayed result.
   - Packing matches the official uploader's horizontal flip, word order, bit polarity, and big-endian serialization.
   - Upload begins with `image clear`, then sends 32 indexed, CRC-protected chunks with retry and progress.
+  - Ordinary chunks use short retryable response windows. The final persistent write gets a 20-second post-echo deadline and is never resent in place.
   - A generated nametag can be edited and sent without an external image tool.
 - **Dependencies**: `src/lib/image-pipeline.js`, `src/lib/transfers.js`, `src/main.js`
 - **Test Criteria**:
@@ -44,6 +45,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - [x] CRC and Base64 output match official all-white, all-black, and single-pixel vectors.
   - [x] The preview can be downloaded locally as a 128×128 PNG.
   - [x] Playwright decodes the faithful hero JPEG as a user upload, exercises keyboard crop/zoom/rotate and dithering controls, downloads the result, and sends 32 valid ordered frames through the serial emulator.
+  - [x] Playwright delays final persistence confirmation beyond the former four-second window and verifies one clear, 32 frames, no restart, and an explicit terminal error state on rejection.
   - [ ] A production badge accepts an uploaded image and displays the same orientation as the preview.
   - [ ] Touch crop and pinch zoom are verified on a physical Android phone.
 
@@ -57,6 +59,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - Enforce clock values from 25 kHz through 350 MHz.
   - Disclose that replacement stops, clears, persists, and runs BIO code.
   - Clear prior code and partial state, send all 60 locally padded chunks, then reload.
+  - The final persistent write gets a 20-second post-echo deadline and is never resent in place.
   - Firmware's `0xF00` receiver buffer is authoritative: 3,840 bytes and 60 chunks supersede stale 4,096-byte/64-chunk prose in the Python uploader.
   - Never send `bio pad` and never expose arbitrary console commands.
   - Provide constrained single-value FIFO3 TX and single-sample RX controls.

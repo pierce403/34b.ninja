@@ -16,6 +16,10 @@ function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+const COMMAND_ECHO_TIMEOUT = 4_000;
+const IMAGE_COMMIT_TIMEOUT = 20_000;
+const BIO_COMMIT_TIMEOUT = 20_000;
+
 function assertNotAborted(signal) {
   if (signal?.aborted) throw new DOMException("Transfer cancelled.", "AbortError");
 }
@@ -92,19 +96,20 @@ export async function uploadImage(connection, payload, options = {}) {
 
     for (let index = 0; index < chunks.length; index += 1) {
       assertNotAborted(signal);
+      const final = index === IMAGE_CHUNKS - 1;
       report(onProgress, {
-        phase: "upload",
+        phase: final ? "commit" : "upload",
         current: index,
         total: IMAGE_CHUNKS,
-        message: `Sending image chunk ${index + 1} of ${IMAGE_CHUNKS}…`,
+        message: final ? "Saving image on the badge…" : `Sending image chunk ${index + 1} of ${IMAGE_CHUNKS}…`,
       });
       const result = await connection.command(makeChunkCommand("image", index, chunks[index]), {
-        expect: ["OK", "SUCCESS"],
-        timeout: 4_000,
-        retries: index === IMAGE_CHUNKS - 1 ? 0 : 4,
+        expect: final ? ["SUCCESS"] : ["OK"],
+        timeout: final ? IMAGE_COMMIT_TIMEOUT : 4_000,
+        echoTimeout: COMMAND_ECHO_TIMEOUT,
+        retries: final ? 0 : 4,
         label: `image chunk ${index + 1}`,
       });
-      const final = index === IMAGE_CHUNKS - 1;
       if ((!final && result.response !== "OK") || (final && result.response !== "SUCCESS")) {
         throw new Error("Badge image state did not match this transfer.");
       }
@@ -174,19 +179,20 @@ export async function uploadBio(connection, binary, configuration, options = {})
 
     for (let index = 0; index < chunks.length; index += 1) {
       assertNotAborted(signal);
+      const final = index === BIO_CHUNKS - 1;
       report(onProgress, {
-        phase: "upload",
+        phase: final ? "commit" : "upload",
         current: index,
         total: BIO_CHUNKS,
-        message: `Sending BIO chunk ${index + 1} of ${BIO_CHUNKS}…`,
+        message: final ? "Saving BIO program on the badge…" : `Sending BIO chunk ${index + 1} of ${BIO_CHUNKS}…`,
       });
       const result = await connection.command(makeChunkCommand("bio", index, chunks[index]), {
-        expect: ["OK", "SUCCESS"],
-        timeout: 3_000,
-        retries: index === BIO_CHUNKS - 1 ? 0 : 3,
+        expect: final ? ["SUCCESS"] : ["OK"],
+        timeout: final ? BIO_COMMIT_TIMEOUT : 3_000,
+        echoTimeout: COMMAND_ECHO_TIMEOUT,
+        retries: final ? 0 : 3,
         label: `BIO chunk ${index + 1}`,
       });
-      const final = index === BIO_CHUNKS - 1;
       if ((!final && result.response !== "OK") || (final && result.response !== "SUCCESS")) {
         throw new Error("Badge BIO state did not match this transfer.");
       }
