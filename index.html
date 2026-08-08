@@ -214,7 +214,7 @@
           <div>
             <p class="kicker amber"><span>02</span> BIO / SAO LAB</p>
             <h1 id="bio-title">Program BIO. <em>Test SAO.</em></h1>
-            <p class="hero-lede">Upload a RISC-V binary, select SAO pins, set the clock, and exchange FIFO3 words.</p>
+            <p class="hero-lede">Upload a RISC-V binary, select SAO pins, flip DC34 orientation when needed, and exchange FIFO3 words.</p>
           </div>
           <aside class="warning-card">
             <strong>PERSISTENT HARDWARE CONTROL</strong>
@@ -247,12 +247,20 @@
               <div class="lab-content">
                 <h2 id="pins-title">SAO pins</h2>
                 <p>Select the signals used by the program.</p>
+                <label class="switch-row slim">
+                  <span>
+                    <strong>Flip DC34 SAO orientation</strong>
+                    <small id="sao-orientation-state">Standard mapping</small>
+                  </span>
+                  <input id="sao-orientation" type="checkbox" role="switch">
+                </label>
                 <div class="pin-grid">
-                  <label><input type="checkbox" name="sao-pin" value="1"><span><b>SAO 1</b><small>PC5 · pin 21</small></span></label>
-                  <label><input type="checkbox" name="sao-pin" value="2"><span><b>SAO 2</b><small>PC6 · pin 22</small></span></label>
-                  <label><input type="checkbox" name="sao-pin" value="3"><span><b>SAO 3</b><small>PC14 · pin 30</small></span></label>
-                  <label><input type="checkbox" name="sao-pin" value="4"><span><b>SAO 4</b><small>PC15 · pin 31</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="1"><span><b>SAO 1</b><small data-sao-slot="1">PC5 · pin 21</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="2"><span><b>SAO 2</b><small data-sao-slot="2">PC6 · pin 22</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="3"><span><b>SAO 3</b><small data-sao-slot="3">PC14 · pin 30</small></span></label>
+                  <label><input type="checkbox" name="sao-pin" value="4"><span><b>SAO 4</b><small data-sao-slot="4">PC15 · pin 31</small></span></label>
                 </div>
+                <p class="validation-line">Flip changes the BIO pin mapping for a 180° SAO header. It does not rotate the physical addon.</p>
               </div>
             </section>
 
@@ -377,5 +385,46 @@
       <span>UNOFFICIAL · LOCAL PROCESSING · OPEN SOURCE</span>
       <a href="https://github.com/pierce403/34b.ninja" target="_blank" rel="noreferrer">SOURCE ON GITHUB ↗</a>
     </footer>
+    <script type="module">
+      import {
+        SAO_ORIENTATION_STORAGE_KEY,
+        SAO_ORIENTATIONS,
+        SAO_PIN_MAP,
+        SAO_SLOT_ORIENTATION_MAP,
+        normalizeSaoOrientation,
+      } from "./src/lib/protocol.js";
+
+      const toggle = document.querySelector("#sao-orientation");
+      const state = document.querySelector("#sao-orientation-state");
+      const labels = [...document.querySelectorAll("[data-sao-slot]")];
+
+      function describeSlot(slot, orientation) {
+        const physicalSlot = SAO_SLOT_ORIENTATION_MAP[orientation][slot];
+        const pin = SAO_PIN_MAP[physicalSlot];
+        if (orientation === SAO_ORIENTATIONS.FLIPPED) return `maps to SAO ${physicalSlot} · pin ${pin}`;
+        return `PC${pin === 21 ? 5 : pin === 22 ? 6 : pin - 16} · pin ${pin}`;
+      }
+
+      function setOrientation(orientation) {
+        const normalized = normalizeSaoOrientation(orientation);
+        toggle.checked = normalized === SAO_ORIENTATIONS.FLIPPED;
+        state.textContent = toggle.checked ? "Flipped mapping: 1↔4, 2↔3" : "Standard mapping";
+        for (const label of labels) {
+          label.textContent = describeSlot(Number(label.dataset.saoSlot), normalized);
+        }
+        try {
+          localStorage.setItem(SAO_ORIENTATION_STORAGE_KEY, normalized);
+        } catch {}
+      }
+
+      try {
+        setOrientation(localStorage.getItem(SAO_ORIENTATION_STORAGE_KEY));
+      } catch {
+        setOrientation(SAO_ORIENTATIONS.STANDARD);
+      }
+      toggle.addEventListener("change", () => {
+        setOrientation(toggle.checked ? SAO_ORIENTATIONS.FLIPPED : SAO_ORIENTATIONS.STANDARD);
+      });
+    </script>
   </body>
 </html>
