@@ -21,6 +21,28 @@ export const SAO_PIN_MAP = Object.freeze({
   4: 31,
 });
 
+export const SAO_ORIENTATIONS = Object.freeze({
+  STANDARD: "standard",
+  FLIPPED: "flipped",
+});
+
+export const SAO_SLOT_ORIENTATION_MAP = Object.freeze({
+  [SAO_ORIENTATIONS.STANDARD]: Object.freeze({
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+  }),
+  [SAO_ORIENTATIONS.FLIPPED]: Object.freeze({
+    1: 4,
+    2: 3,
+    3: 2,
+    4: 1,
+  }),
+});
+
+export const SAO_ORIENTATION_STORAGE_KEY = "34b-sao-orientation";
+
 const CRC_TABLE = new Uint32Array(256);
 for (let i = 0; i < CRC_TABLE.length; i += 1) {
   let value = i;
@@ -95,14 +117,34 @@ export function validateBioBinary(bytes) {
   return null;
 }
 
-export function mapSaoSlots(slots) {
+export function normalizeSaoOrientation(orientation = SAO_ORIENTATIONS.STANDARD) {
+  if (orientation === SAO_ORIENTATIONS.FLIPPED) return SAO_ORIENTATIONS.FLIPPED;
+  return SAO_ORIENTATIONS.STANDARD;
+}
+
+function storedSaoOrientation() {
+  try {
+    if (typeof localStorage === "undefined") return SAO_ORIENTATIONS.STANDARD;
+    return normalizeSaoOrientation(localStorage.getItem(SAO_ORIENTATION_STORAGE_KEY));
+  } catch {
+    return SAO_ORIENTATIONS.STANDARD;
+  }
+}
+
+export function mapSaoSlots(slots, options = {}) {
+  const orientation = options.orientation
+    ? normalizeSaoOrientation(options.orientation)
+    : storedSaoOrientation();
+  const slotMap = SAO_SLOT_ORIENTATION_MAP[orientation];
   const mapped = [...new Set(slots.map((slot) => Number(slot)))]
     .sort((a, b) => a - b)
     .map((slot) => {
-      const pin = SAO_PIN_MAP[slot];
+      const physicalSlot = slotMap[slot];
+      const pin = SAO_PIN_MAP[physicalSlot];
       if (!pin) throw new RangeError(`Unknown SAO slot ${slot}.`);
       return pin;
-    });
+    })
+    .sort((a, b) => a - b);
   return mapped;
 }
 
