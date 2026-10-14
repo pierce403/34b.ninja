@@ -26,6 +26,7 @@ const packages = [
   'libfontconfig1', 'libfreetype6', 'libharfbuzz0b', 'libthai0', 'libdatrie1',
   'libpixman-1-0', 'libxcb-render0', 'libxcb-shm0', 'libxrender1',
   'libpng16-16t64', 'libbrotli1', 'libexpat1', 'libgraphite2-3', 'libxau6', 'libxdmcp6',
+  'libxi6', 'libxcursor1', 'libxtst6', 'libxss1', 'libxinerama1', 'libxshmfence1',
 ];
 execFileSync('apt-get', [...aptOptions, 'download', ...packages], { cwd: downloads, stdio: 'inherit' });
 for (const file of readdirSync(downloads).filter(name => name.endsWith('.deb'))) {
