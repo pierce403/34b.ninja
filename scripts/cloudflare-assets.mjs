@@ -1,0 +1,11 @@
+import { mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
+const output = resolve("dist");
+const revision = process.env.CF_COMMIT_SHA || execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error('Invalid source revision');
+mkdirSync(resolve(output, '.well-known'), { recursive: true });
+writeFileSync(resolve(output, '.well-known/cloudflare-build.json'), JSON.stringify({ repository: "pierce403/34b.ninja", revision }, null, 2) + '\n');
+writeFileSync(resolve(output, '404.html'), '<!doctype html><html lang="en"><meta charset="utf-8"><title>Page not found</title><h1>Page not found</h1><p><a href="/">Return home</a></p></html>\n');
+appendFileSync(resolve(output, '_headers'), '\n/.well-known/cloudflare-build.json\n  Cache-Control: no-store\n');
+console.log('Cloudflare static assets prepared at ' + revision);

@@ -9,7 +9,7 @@ The site currently provides:
 - **BIO / SAO Lab** — configure SAO pins and clock, upload a BIO binary, and use constrained FIFO controls; and
 - **Web Serial + WebUSB transport** — native Web Serial on desktop Chromium and an experimental WebUSB CDC path on Android.
 
-All image processing and USB traffic stay in the browser. There is no backend, analytics, account, or cloud upload.
+All image processing and USB traffic stay in the browser. There is no backend, account, or cloud upload of badge or image data. Cloudflare hosts the static site and collects visit/performance metrics.
 
 The original command-line image workflow is the Python [`dc34-image`](https://github.com/bunnie/dc34-image) uploader. 34b.ninja reproduces its bitmap packing and chunk framing in the browser, while adding crop, scale, dithering, and nametag tools.
 
@@ -71,3 +71,11 @@ Exact inspected commits and canonical source links are pinned in [`notes/protoco
 ## License
 
 MIT. This is an unofficial community project and is not affiliated with DEF CON or Baochip.
+
+## Cloudflare publishing
+
+Native Cloudflare Git builds publish `main`; credentials stay in Cloudflare and
+previews are disabled. The existing Vite generator supplies `dist`, with
+a no-store revision marker and terminal404 handling. Validate with `npm ci`,
+the existing tests, and `npm run check:deploy`. `npm run deploy` is the native
+deploy command. GitHub Pages and source history remain recovery sources.

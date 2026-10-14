@@ -59,3 +59,18 @@ No complete production-badge transfer is recorded yet. Keep the corresponding `F
 | Offline shell | Installed PWA after one online visit | pending | — |
 
 For a completed manual row, record the date, browser and OS versions, viewport or device, badge Xous version, cable/adapter where relevant, expected versus observed result, and a repository-relative link to any screenshot or log artifact. Do not include secrets or raw BIO/image chunk payloads.
+
+## Cloudflare hosting migration, 2026-10-14
+
+Existing Vite assets and local badge behavior are preserved. Native release gate
+will run `npm run build:cloudflare`; hosting and hardware evidence remain separate.
+Local and live acceptance are pending. No badge chooser or physical USB action
+is part of the migration checks.
+
+2026-10-14 local migration gate: locked `npm ci`, `npm run check` and
+`npm run check:deploy` pass. All11Playwright tests pass, including320/390/768/1280
+layouts and serial/WebUSB firmware doubles. No production badge was used.
+The first runner attempt hit system temporary-cache quota; supported
+PWTEST_CACHE_DIR and TMPDIR under the ignored coordination work directory fixed
+it. Cloudflare build containers have their own ephemeral cache. Live native
+release/domain/metrics acceptance is still pending.

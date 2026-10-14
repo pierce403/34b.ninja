@@ -22,4 +22,4 @@ Keep this index compact. Durable details live in `notes/`; session chatter does 
 - Command echo detection has a short deadline; final image and BIO persistence get a separate 20-second response deadline after the exact echo. Do not infer final-write latency from ordinary chunk RTTs.
 - A connected final timeout or final `OK` is reconciled without clearing: replay chunks zero through final until firmware returns `SUCCESS`. Do not treat `OK` alone as proof of commit, and stop immediately after `SUCCESS` because firmware clears staging.
 - Image files are capped at 30 MiB and rejected above 80 megapixels; retained editor sources are downscaled to a 4,096-pixel longest edge. The initial browser decode still occurs before the dimension check, so compressed size alone is not a memory bound.
-- No backend, accounts, telemetry, arbitrary terminal, firmware updater, or FIDO vendor commands.
+- No backend, accounts, badge/image telemetry, arbitrary terminal, firmware updater, or FIDO vendor commands. Cloudflare site visit/performance metrics are separate from the local badge workflow.

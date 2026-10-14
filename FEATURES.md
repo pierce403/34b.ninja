@@ -77,7 +77,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Stability**: in-progress
 - **Description**: Keep both tools fast, legible, and private on phones as well as desktops.
 - **Properties**:
-  - The complete image pipeline runs locally with no backend or analytics.
+  - The complete image pipeline runs locally with no backend; Cloudflare collects site visit/performance metrics separately.
   - Navigation and transfer actions remain reachable with one hand and respect device safe areas.
   - Controls meet minimum touch-target and contrast requirements.
   - Empty-state and nametag OLED copy uses deterministic integer-grid glyphs rather than platform fonts.
@@ -107,3 +107,16 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - [x] `npm run check` is the documented local release gate.
   - [x] The release gate runs Node protocol tests, a Vite production build, and Playwright browser/transport emulation before Pages deployment.
   - [x] Deployment is configured for GitHub Pages and preserves `CNAME`.
+
+## Native Cloudflare hosting
+
+- **Stability**: in-progress
+- **Description**: Publish existing Vite assets through native Git builds while preserving local badge operations.
+- **Properties**:
+  - Credentials stay in Cloudflare, previews stay off, and GitHub Pages remains recovery source.
+  - Native builds run `npm run build:cloudflare`, which installs Chromium and runs the existing `npm run check` release gate.
+  - The same domain, manifest, service-worker URL and public assets are retained.
+- **Test Criteria**:
+  - [x] Locked install, existing release gate and Worker deploy dry run pass.
+  - [ ] Exact native commit/build/version, normal custom-host HTTPS, real404, browser behavior and received metrics are verified.
+  - [ ] Image and USB operations remain local; no hardware validation is inferred from this hosting change.
