@@ -19,7 +19,7 @@
     "check": "npm run test:unit && npm run test:e2e",
     "deploy": "wrangler deploy",
     "check:deploy": "npm run build && wrangler deploy --dry-run",
-    "build:cloudflare": "playwright install chromium && npm run check"
+    "build:cloudflare": "playwright install --with-deps chromium && npm run check"
   },
   "dependencies": {
     "web-serial-polyfill": "1.0.15"

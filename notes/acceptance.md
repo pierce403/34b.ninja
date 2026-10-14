@@ -74,3 +74,5 @@ The first runner attempt hit system temporary-cache quota; supported
 PWTEST_CACHE_DIR and TMPDIR under the ignored coordination work directory fixed
 it. Cloudflare build containers have their own ephemeral cache. Live native
 release/domain/metrics acceptance is still pending.
+
+Cloudflare build `0dd25910-7838-49b7-acf1-cc60a69e7f75` stopped before deployment because the downloaded Chromium executable lacked `libatk-1.0.so.0`. The native-only build script now uses Playwright's documented `install --with-deps chromium` to provision its ephemeral Linux build environment before running the unchanged complete check. No workstation system packages were changed. The subsequent native result remains a separate gate.

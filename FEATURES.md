@@ -114,7 +114,7 @@ This living specification follows [features.md](https://features.md/). Agents mu
 - **Description**: Publish existing Vite assets through native Git builds while preserving local badge operations.
 - **Properties**:
   - Credentials stay in Cloudflare, previews stay off, and GitHub Pages remains recovery source.
-  - Native builds run `npm run build:cloudflare`, which installs Chromium and runs the existing `npm run check` release gate.
+  - Native builds run `npm run build:cloudflare`, which installs Chromium with its Linux dependencies and runs the existing `npm run check` release gate.
   - The same domain, manifest, service-worker URL and public assets are retained.
 - **Test Criteria**:
   - [x] Locked install, existing release gate and Worker deploy dry run pass.
