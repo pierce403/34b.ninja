@@ -118,5 +118,5 @@ This living specification follows [features.md](https://features.md/). Agents mu
   - The same domain, manifest, service-worker URL and public assets are retained.
 - **Test Criteria**:
   - [x] Locked install, existing release gate and Worker deploy dry run pass.
-  - [ ] Exact native commit/build/version, normal custom-host HTTPS, real404, browser behavior and received metrics are verified.
+  - [x] Exact native commit/build/version, normal custom-host HTTPS, real404, browser behavior and received metrics are verified.
   - [ ] Image and USB operations remain local; no hardware validation is inferred from this hosting change.
