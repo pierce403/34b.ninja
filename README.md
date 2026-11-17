@@ -70,7 +70,7 @@ Exact inspected commits and canonical source links are pinned in [`notes/protoco
 
 ## License
 
-MIT. This is an unofficial community project and is not affiliated with DEF CON or Baochip.
+Apache-2.0. This is an unofficial community project and is not affiliated with DEF CON or Baochip.
 
 ## Cloudflare publishing
 
@@ -79,3 +79,9 @@ previews are disabled. The existing Vite generator supplies `dist`, with
 a no-store revision marker and terminal404 handling. Validate with `npm ci`,
 the existing tests, and `npm run check:deploy`. `npm run deploy` is the native
 deploy command. GitHub Pages and source history remain recovery sources.
+
+## Licensing scope
+
+Original project code and documentation are licensed under the [Apache License, Version 2.0](LICENSE). Third-party dependencies, vendored code, quoted material, data, fonts, media, and other third-party assets retain their respective licenses and rights; this grant does not relicense them. Existing license notices and attribution must be preserved.
+
+Earlier MIT grants remain valid; the previous license text is preserved in [LICENSE-MIT](LICENSE-MIT).
